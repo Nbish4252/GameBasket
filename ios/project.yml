@@ -1,0 +1,42 @@
+name: GameBasket
+options:
+  bundleIdPrefix: com.gamebasket
+  deploymentTarget:
+    iOS: "17.0"
+configFiles:
+  Debug: GameBasket/Secrets.xcconfig
+  Release: GameBasket/Secrets.xcconfig
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.0.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 7.0.0
+targets:
+  GameBasket:
+    type: application
+    platform: iOS
+    sources:
+      - path: GameBasket
+        excludes:
+          - "Secrets.xcconfig*"
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    info:
+      path: GameBasket/Info.plist
+      properties:
+        NSFaceIDUsageDescription: "GameBasket uses Face ID to quickly and securely unlock your account."
+        SUPABASE_URL: "$(SUPABASE_URL)"
+        SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - "$(GOOGLE_REVERSED_CLIENT_ID)" # from GoogleService-Info.plist
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gamebasket.app
+        SWIFT_VERSION: "5.0"
