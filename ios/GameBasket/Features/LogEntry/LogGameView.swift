@@ -5,7 +5,7 @@ struct LogGameView: View {
 
     @State private var rating: Double = 0
     @State private var review = ""
-    @State private var status: LogStatus = .completed
+    @State private var status: LogStatus = .playing
     @State private var playedOn = Date()
 
     var body: some View {

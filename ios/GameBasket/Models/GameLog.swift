@@ -1,7 +1,7 @@
 import Foundation
 
 enum LogStatus: String, Codable, CaseIterable {
-    case playing, completed, backlog, abandoned
+    case playing, backlogged, wishlist, completed
 }
 
 struct GameLog: Codable, Identifiable {
