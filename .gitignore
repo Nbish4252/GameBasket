@@ -1,0 +1,18 @@
+# Xcode / Swift
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+ios/*.xcodeproj/
+
+# Secrets (real values — commit only Secrets.xcconfig.example)
+ios/GameBasket/Secrets.xcconfig
+ios/GameBasket/GoogleService-Info.plist
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# macOS
+.DS_Store
