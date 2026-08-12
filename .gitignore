@@ -5,6 +5,7 @@ DerivedData/
 xcuserdata/
 .swiftpm/
 ios/*.xcodeproj/
+ios/GameBasket/Info.plist
 
 # Secrets (real values — commit only Secrets.xcconfig.example)
 ios/GameBasket/Secrets.xcconfig
