@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GameBasket UI Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red: #E8564A;
+    --red-dim: #C4483E;
+    --blue: #2E56A6;
+    --green: #47AD6C;
+    --gold: #F1BC33;
+    --gold-dim: #B8891F;
+    --heart: #EB5757;
+    --heart-dim: #A83A3A;
+    --bg: #12141C;
+    --surface: #1A1D29;
+    --surface-2: #222639;
+    --line: #2C3040;
+    --text: #F4F5F9;
+    --text-dim: #9AA1B4;
+    --text-faint: #616880;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: radial-gradient(circle at 30% 0%, #232842 0%, #10121a 60%);
+    font-family:'Nunito', sans-serif;
+    padding:48px 24px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:28px;
+  }
+  .label-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    color:var(--text-dim);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .label-row .swatch{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .phones{
+    display:flex;
+    gap:36px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .phone{
+    width:340px;
+    height:700px;
+    background:#05060a;
+    border-radius:46px;
+    padding:12px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.6), 0 0 0 1px #000;
+    position:relative;
+  }
+  .screen{
+    width:100%;
+    height:100%;
+    background:var(--bg);
+    border-radius:36px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .notch{
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    width:70px;
+    height:18px;
+    background:#000;
+    border-radius:12px;
+    z-index:20;
+  }
+  .statusbar{
+    display:flex;
+    justify-content:space-between;
+    padding:16px 22px 4px;
+    color:var(--text);
+    font-size:12px;
+    font-weight:700;
+  }
+
+  /* ---- Header / brand ---- */
+  .brandbar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:6px 0 12px;
+  }
+  .brand-logo{width:26px;height:22px;}
+  .brand-word{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    color:var(--red);
+    letter-spacing:.01em;
+  }
+  .brand-word span.b{color:var(--blue);}
+
+  .tabs{
+    display:flex;
+    justify-content:space-around;
+    padding:0 14px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .tab{
+    font-family:'Nunito';
+    font-weight:800;
+    font-size:12.5px;
+    color:var(--text-faint);
+    padding-bottom:10px;
+    position:relative;
+  }
+  .tab.active{color:var(--text);}
+  .tab.active::after{
+    content:'';
+    position:absolute;
+    bottom:-1px;left:0;right:0;
+    height:3px;
+    background:var(--green);
+    border-radius:3px;
+  }
+
+  .scroll{
+    flex:1;
+    overflow-y:auto;
+    padding-bottom:20px;
+  }
+  .section{padding:18px 18px 4px;}
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .section-title{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:15.5px;
+    color:var(--text);
+  }
+  .section-arrow{color:var(--text-faint); font-size:14px;}
+
+  .row{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    scrollbar-width:none;
+  }
+  .row::-webkit-scrollbar{display:none;}
+
+  .cover{
+    flex:0 0 auto;
+    width:88px;
+    height:118px;
+    border-radius:10px;
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    padding:8px;
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:11px;
+    color:#fff;
+    background-size:cover;
+    overflow:hidden;
+    box-shadow: inset 0 -40px 30px -20px rgba(0,0,0,.55);
+  }
+  .cover-meta{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    width:88px;
+    margin-top:6px;
+  }
+  .heart-mini{display:flex; align-items:center; gap:3px;}
+  .heart-mini .heart-icon{width:11px;height:11px;}
+  .heart-mini span{font-size:10.5px; color:var(--heart); font-weight:800; font-family:'Nunito';}
+  .friend-name{font-size:10.5px; color:var(--text-dim); font-weight:700;}
+
+  /* cover art variants (placeholder art, no real IP) */
+  .c1{background:linear-gradient(160deg,#4c3b8c,#1a1330);}
+  .c2{background:linear-gradient(160deg,#1f5c47,#0c2019);}
+  .c3{background:linear-gradient(160deg,#7a2b2b,#210b0b);}
+  .c4{background:linear-gradient(160deg,#2c5f8a,#0c1e2c);}
+  .c5{background:linear-gradient(160deg,#8a5a1f,#2c1a08);}
+  .c6{background:linear-gradient(160deg,#6b2c7a,#1e0b28);}
+  .c7{background:linear-gradient(160deg,#2c8a7a,#0b241f);}
+
+  .bottomnav{
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:14px 10px 20px;
+    border-top:1px solid var(--line);
+    background:var(--surface);
+  }
+  .navicon{width:22px;height:22px; opacity:.5;}
+  .navicon.active{opacity:1;}
+  .navicon.plus{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    opacity:1;
+    color:#08150e;
+    font-weight:900;
+    font-size:18px;
+    font-family:'Nunito';
+  }
+
+  /* ---- Detail screen ---- */
+  .hero{
+    position:relative;
+    height:230px;
+    background: linear-gradient(180deg, rgba(10,11,16,0.1) 40%, var(--bg) 100%),
+                linear-gradient(150deg,#3a3560,#171226 70%);
+  }
+  .hero-topbar{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 18px 0;
+    z-index:5;
+  }
+  .hero-topbar .icon-btn{
+    width:30px;height:30px;border-radius:50%;
+    background:rgba(0,0,0,.35);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff; font-size:14px;
+  }
+  .detail-body{
+    margin-top:-46px;
+    padding:0 18px;
+    position:relative;
+    z-index:2;
+  }
+  .detail-top{
+    display:flex;
+    gap:14px;
+    align-items:flex-end;
+  }
+  .detail-cover{
+    width:84px;
+    height:112px;
+    border-radius:10px;
+    background:linear-gradient(160deg,#7a2b2b,#210b0b);
+    flex:0 0 auto;
+    box-shadow:0 12px 24px -8px rgba(0,0,0,.6);
+  }
+  .detail-titleblock{padding-bottom:4px;}
+  .detail-title{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:19px;
+    color:var(--text);
+    line-height:1.1;
+  }
+  .detail-sub{
+    font-size:11.5px;
+    color:var(--text-dim);
+    font-weight:700;
+    margin-top:4px;
+  }
+
+  .meta-strip{
+    display:flex;
+    gap:14px;
+    margin:14px 0 10px;
+    color:var(--text-faint);
+    font-size:11px;
+    font-weight:700;
+  }
+  .desc{
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--text-dim);
+    font-weight:600;
+  }
+
+  .divider{height:1px; background:var(--line); margin:16px 0;}
+
+  .rating-block{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .heartbars{
+    display:flex;
+    align-items:flex-end;
+    gap:4px;
+    height:44px;
+  }
+  .heartbar{
+    width:8px;
+    background: linear-gradient(180deg, var(--heart), var(--heart-dim));
+    border-radius:3px 3px 0 0;
+  }
+  .avg-score{
+    text-align:center;
+  }
+  .avg-num{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:26px;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .avg-num .heart-icon{width:20px;height:20px;}
+  .avg-label{
+    font-size:10px;
+    color:var(--text-faint);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-top:2px;
+  }
+
+  .heart-icon{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    shape-rendering:crispEdges;
+  }
+
+  .played-line{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface-2);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-top:16px;
+  }
+  .played-line .txt{font-size:11.5px; color:var(--text-dim); font-weight:700;}
+  .played-hearts{display:flex; gap:2px;}
+  .played-hearts .heart-icon{width:14px;height:14px;}
+
+  .played-with{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+    padding:10px 12px;
+    background:var(--surface-2);
+    border-radius:12px;
+  }
+  .pw-label{
+    font-size:11px;
+    font-weight:800;
+    color:var(--green);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .pw-avatars{display:flex;}
+  .pw-avatars .avatar.small{
+    width:22px;height:22px;
+    margin-left:-8px;
+    border:2px solid var(--surface-2);
+  }
+  .pw-avatars .avatar.small:first-child{margin-left:0;}
+  .pw-names{
+    font-size:11.5px;
+    color:var(--text-dim);
+    font-weight:700;
+  }
+
+  .section-subhead{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:13px;
+    color:var(--text-faint);
+    margin-top:18px;
+    margin-bottom:2px;
+  }
+
+  .friends-row{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+  }
+  .avatar{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:linear-gradient(160deg,#555,#222);
+    position:relative;
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .avatar .tag{
+    position:absolute;
+    bottom:-8px;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    background:var(--surface);
+    border-radius:8px;
+    padding:1px 4px;
+  }
+  .avatar .tag .heart-icon{width:8px;height:8px;}
+  .avatar .tag span{font-size:8px; color:var(--gold); font-weight:800;}
+
+  .storelinks{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:26px;
+  }
+  .storelinks .stores{display:flex; gap:8px;}
+  .store-pill{
+    width:30px;height:30px;
+    border-radius:50%;
+    background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+  }
+
+  /* ---- Review screen ---- */
+  .review-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 18px 10px;
+  }
+  .review-topbar .icon-btn{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text); font-size:14px;
+  }
+  .review-topbar .rt-title{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--text);
+  }
+
+  .reviewer-block{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 18px 14px;
+  }
+  .reviewer-avatar{
+    width:42px;height:42px;
+    border-radius:50%;
+    background:linear-gradient(160deg,#6b5a9a,#241c3c);
+  }
+  .reviewer-name{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--text);
+  }
+  .reviewer-time{
+    font-size:11px;
+    color:var(--text-faint);
+    font-weight:700;
+    margin-top:1px;
+  }
+
+  .game-chip{
+    margin:0 18px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface-2);
+    border-radius:14px;
+    padding:10px;
+  }
+  .game-chip .chip-cover{
+    width:44px;height:58px;
+    border-radius:7px;
+    background:linear-gradient(160deg,#7a2b2b,#210b0b);
+    flex:0 0 auto;
+  }
+  .game-chip .chip-info{flex:1;}
+  .game-chip .chip-title{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+  }
+  .game-chip .chip-sub{
+    font-size:10.5px;
+    color:var(--text-faint);
+    font-weight:700;
+    margin-top:2px;
+  }
+  .chip-hearts{display:flex; gap:2px; margin-top:6px;}
+  .chip-hearts .heart-icon{width:13px;height:13px;}
+
+  .review-text{
+    padding:0 18px;
+    font-size:12.5px;
+    line-height:1.65;
+    color:var(--text-dim);
+    font-weight:600;
+  }
+  .review-text p{margin:0 0 12px;}
+
+  .review-footer{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    padding:18px 18px 0;
+    margin-top:6px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+    margin-left:18px;
+    margin-right:18px;
+  }
+  .footer-action{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--text-faint);
+    font-size:12px;
+    font-weight:800;
+  }
+  .footer-action .heart-icon{width:16px;height:16px;}
+  .footer-action.liked{color:var(--heart);}
+
+  footer.note{
+    max-width:720px;
+    text-align:center;
+    color:#7d84a0;
+    font-family:'Nunito';
+    font-size:13px;
+    line-height:1.6;
+    margin-top:6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="label-row">
+  <span class="swatch" style="background:var(--red)"></span>
+  <span class="swatch" style="background:var(--blue)"></span>
+  <span class="swatch" style="background:var(--green)"></span>
+  <span class="swatch" style="background:var(--gold)"></span>
+  GameBasket &mdash; Home Feed, Game Detail &amp; Review Concept
+</div>
+
+<div class="phones">
+
+  <!-- ============ SCREEN 1: HOME FEED ============ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar"><span>3:09</span><span>••• Wi-Fi 🔋</span></div>
+
+      <div class="brandbar">
+        <svg class="brand-logo" viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="34" r="18" fill="#2E56A6"/>
+          <circle cx="30" cy="34" r="7" fill="white"/>
+          <path d="M62 20 C68 12, 80 14, 80 24 C80 32, 70 34, 66 40 C60 40, 56 34, 58 28 C58 24, 60 22, 62 20 Z" fill="#47AD6C"/>
+          <rect x="12" y="46" width="76" height="18" rx="9" fill="#E8564A"/>
+          <path d="M18 66 L82 66 L74 88 L26 88 Z" fill="#E8564A"/>
+        </svg>
+        <div class="brand-word">Game<span class="b">Basket</span></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Games</div>
+        <div class="tab">Reviews</div>
+        <div class="tab">Lists</div>
+        <div class="tab">Journal</div>
+      </div>
+
+      <div class="scroll">
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Popular this week</div>
+            <div class="section-arrow">›</div>
+          </div>
+          <div class="row">
+            <div class="cover c1">Nightfall Arcade</div>
+            <div class="cover c2">Verdant Trail</div>
+            <div class="cover c3">Copper &amp; Ash</div>
+            <div class="cover c4">Skybound Rally</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">New from friends</div>
+            <div class="section-arrow">›</div>
+          </div>
+          <div class="row">
+            <div style="flex:0 0 auto;">
+              <div class="cover c5">Starlit Ferry</div>
+              <div class="cover-meta">
+                <span class="friend-name">Nigel</span>
+                <div class="heart-mini">
+                  <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+                  <span>4.5</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;">
+              <div class="cover c6">Twin Peaks Run</div>
+              <div class="cover-meta">
+                <span class="friend-name">Jack</span>
+                <div class="heart-mini">
+                  <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+                  <span>3.5</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;">
+              <div class="cover c3">Copper &amp; Ash</div>
+              <div class="cover-meta">
+                <span class="friend-name">Gemma</span>
+                <div class="heart-mini">
+                  <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+                  <span>5.0</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;">
+              <div class="cover c2">Verdant Trail</div>
+              <div class="cover-meta">
+                <span class="friend-name">Hyung</span>
+                <div class="heart-mini">
+                  <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+                  <span>2.5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Popular with friends</div>
+            <div class="section-arrow">›</div>
+          </div>
+          <div class="row">
+            <div class="cover c1">Nightfall Arcade</div>
+            <div class="cover c7">Paper Garden</div>
+            <div class="cover c4">Skybound Rally</div>
+            <div class="cover c6">Twin Peaks Run</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottomnav">
+        <svg class="navicon active" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#47AD6C" stroke-width="2"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AA1B4" stroke-width="2"/><line x1="21" y1="21" x2="16.5" y2="16.5" stroke="#9AA1B4" stroke-width="2"/></svg>
+        <div class="navicon plus">+</div>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><path d="M13 2 L4 14 H11 L9 22 L20 9 H13 L13 2Z" fill="#9AA1B4"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#9AA1B4" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="#9AA1B4" stroke-width="2"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 2: GAME DETAIL ============ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="hero">
+        <div class="hero-topbar">
+          <div class="icon-btn">‹</div>
+          <div class="icon-btn">⋮</div>
+        </div>
+      </div>
+
+      <div class="scroll" style="padding-top:0;">
+        <div class="detail-body">
+          <div class="detail-top">
+            <div class="detail-cover"></div>
+            <div class="detail-titleblock">
+              <div class="detail-title">Copper &amp; Ash</div>
+              <div class="detail-sub">Marrow Studios · 2025</div>
+            </div>
+          </div>
+
+          <div class="meta-strip">
+            <span>🕹️ 18–24 hrs</span>
+            <span>PC · Switch</span>
+            <span>Single-player</span>
+          </div>
+
+          <div class="desc">
+            A quiet frontier town hides a decades-old debt. Ash Calloway returns home to settle it &mdash; one favor, one grudge, one reckoning at a time.
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="rating-block">
+            <div class="heartbars">
+              <div class="heartbar" style="height:10px"></div>
+              <div class="heartbar" style="height:16px"></div>
+              <div class="heartbar" style="height:26px"></div>
+              <div class="heartbar" style="height:38px"></div>
+              <div class="heartbar" style="height:44px"></div>
+              <div class="heartbar" style="height:30px"></div>
+              <div class="heartbar" style="height:14px"></div>
+            </div>
+            <div class="avg-score">
+              <div class="avg-num">
+                <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+                4.2
+              </div>
+              <div class="avg-label">2.1k ratings</div>
+            </div>
+          </div>
+
+          <div class="played-line">
+            <div class="txt">Your rating</div>
+            <div class="played-hearts">
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" opacity="0.25" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+            </div>
+          </div>
+
+          <div class="played-with">
+            <span class="pw-label">Played with</span>
+            <div class="pw-avatars">
+              <div class="avatar small"></div>
+              <div class="avatar small"></div>
+              <div class="avatar small"></div>
+            </div>
+            <span class="pw-names">Jordan, Maya &amp; Theo</span>
+          </div>
+
+          <div class="section-subhead">Friends who rated this</div>
+          <div class="friends-row">
+            <div class="avatar"><div class="tag"><svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg><span>4</span></div></div>
+            <div class="avatar"><div class="tag"><svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg><span>5</span></div></div>
+            <div class="avatar"><div class="tag"><svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg><span>5</span></div></div>
+            <div class="avatar"><div class="tag"><svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg><span>4</span></div></div>
+          </div>
+
+          <div class="storelinks">
+            <div class="stores">
+              <div class="store-pill">🎮</div>
+              <div class="store-pill">🖥️</div>
+            </div>
+            <div class="section-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottomnav">
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#9AA1B4" stroke-width="2"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AA1B4" stroke-width="2"/><line x1="21" y1="21" x2="16.5" y2="16.5" stroke="#9AA1B4" stroke-width="2"/></svg>
+        <div class="navicon plus">+</div>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><path d="M13 2 L4 14 H11 L9 22 L20 9 H13 L13 2Z" fill="#9AA1B4"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#9AA1B4" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="#9AA1B4" stroke-width="2"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 3: REVIEW ============ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar"><span>3:12</span><span>••• Wi-Fi 🔋</span></div>
+
+      <div class="review-topbar">
+        <div class="icon-btn">‹</div>
+        <div class="rt-title">Review</div>
+        <div class="icon-btn">⋮</div>
+      </div>
+
+      <div class="scroll">
+        <div class="reviewer-block">
+          <div class="reviewer-avatar"></div>
+          <div>
+            <div class="reviewer-name">Maya Ríos</div>
+            <div class="reviewer-time">Logged · 3 days ago · 22 hrs played</div>
+          </div>
+        </div>
+
+        <div class="game-chip">
+          <div class="chip-cover"></div>
+          <div class="chip-info">
+            <div class="chip-title">Copper &amp; Ash</div>
+            <div class="chip-sub">Marrow Studios · PC</div>
+            <div class="chip-hearts">
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+              <svg class="heart-icon" viewBox="0 0 7 7" opacity="0.25" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1" fill="#EB5757"/><rect x="2" y="0" width="1" height="1" fill="#EB5757"/><rect x="4" y="0" width="1" height="1" fill="#EB5757"/><rect x="5" y="0" width="1" height="1" fill="#EB5757"/><rect x="0" y="1" width="1" height="1" fill="#EB5757"/><rect x="1" y="1" width="1" height="1" fill="#EB5757"/><rect x="2" y="1" width="1" height="1" fill="#EB5757"/><rect x="3" y="1" width="1" height="1" fill="#EB5757"/><rect x="4" y="1" width="1" height="1" fill="#EB5757"/><rect x="5" y="1" width="1" height="1" fill="#EB5757"/><rect x="6" y="1" width="1" height="1" fill="#EB5757"/><rect x="0" y="2" width="1" height="1" fill="#EB5757"/><rect x="1" y="2" width="1" height="1" fill="#EB5757"/><rect x="2" y="2" width="1" height="1" fill="#EB5757"/><rect x="3" y="2" width="1" height="1" fill="#EB5757"/><rect x="4" y="2" width="1" height="1" fill="#EB5757"/><rect x="5" y="2" width="1" height="1" fill="#EB5757"/><rect x="6" y="2" width="1" height="1" fill="#EB5757"/><rect x="0" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="3" width="1" height="1" fill="#EB5757"/><rect x="2" y="3" width="1" height="1" fill="#EB5757"/><rect x="3" y="3" width="1" height="1" fill="#EB5757"/><rect x="4" y="3" width="1" height="1" fill="#EB5757"/><rect x="5" y="3" width="1" height="1" fill="#EB5757"/><rect x="6" y="3" width="1" height="1" fill="#EB5757"/><rect x="1" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="4" width="1" height="1" fill="#EB5757"/><rect x="3" y="4" width="1" height="1" fill="#EB5757"/><rect x="4" y="4" width="1" height="1" fill="#EB5757"/><rect x="5" y="4" width="1" height="1" fill="#EB5757"/><rect x="2" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="5" width="1" height="1" fill="#EB5757"/><rect x="4" y="5" width="1" height="1" fill="#EB5757"/><rect x="3" y="6" width="1" height="1" fill="#EB5757"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="played-with" style="margin:0 18px 16px;">
+          <span class="pw-label">Played with</span>
+          <div class="pw-avatars">
+            <div class="avatar small"></div>
+            <div class="avatar small"></div>
+          </div>
+          <span class="pw-names">Jordan &amp; Theo</span>
+        </div>
+
+        <div class="review-text">
+          <p>Went in expecting a straightforward western revenge plot and came out thinking about it for a week. The pacing in the second act drags a little around the ranch side-quests, but the final confrontation earns every hour leading up to it.</p>
+          <p>Combat is simple but the writing carries this one. Ash's dialogue options actually change how NPCs treat you three towns later, which I wasn't expecting from a studio this small.</p>
+        </div>
+
+        <div class="review-footer">
+          <div class="footer-action liked">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0 4.5-8a2 2 0 0 1 2 2v4h4.3a2 2 0 0 1 2 2.4l-1.4 6A2 2 0 0 1 16.5 20H7" fill="#EB5757" stroke="#EB5757" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <span>128</span>
+          </div>
+          <div class="footer-action">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M4 5h16v11H8l-4 4V5Z" stroke="#9AA1B4" stroke-width="1.8"/></svg>
+            <span>14</span>
+          </div>
+          <div class="footer-action">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14" stroke="#9AA1B4" stroke-width="1.8"/></svg>
+            <span>Share</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottomnav">
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#9AA1B4" stroke-width="2"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AA1B4" stroke-width="2"/><line x1="21" y1="21" x2="16.5" y2="16.5" stroke="#9AA1B4" stroke-width="2"/></svg>
+        <div class="navicon plus">+</div>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><path d="M13 2 L4 14 H11 L9 22 L20 9 H13 L13 2Z" fill="#9AA1B4"/></svg>
+        <svg class="navicon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#9AA1B4" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="#9AA1B4" stroke-width="2"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="note">
+  Hearts replace coins as the rating unit &mdash; no price/donation association, and hearts read instantly as "gaming" (health, lives) rather than currency. The "Played with" tag on both the game page and the review page tags real co-op partners, something Letterboxd has no equivalent for since films aren't played together. Game covers, titles, and names here are placeholders, not real people or IP &mdash; swap in real IGDB art once you're building for real.
+</footer>
+
+</body>
+</html>
