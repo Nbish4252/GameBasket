@@ -2,7 +2,7 @@ create table public.logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
   game_id bigint not null references public.games (id) on delete cascade,
-  rating smallint check (rating between 1 and 10), -- half-star units: 1 = 0.5★, 10 = 5★
+  rating smallint check (rating between 1 and 10), -- half-heart units: 1 = 0.5♥, 10 = 5♥
   review text,
   played_on date,
   status text not null default 'completed'

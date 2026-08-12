@@ -48,5 +48,5 @@ gamebasket/
 ## Notes
 
 - `supabase-swift`'s API shifts between versions; the calls in `Services/` are best-effort against the current SDK and haven't been compiled against a resolved package yet — check them against autocomplete once Xcode pulls the dependency.
-- Ratings are stored as half-star units (`smallint` 1–10) to represent 0.5–5★.
+- Ratings are stored as half-heart units (`smallint` 1–10) to represent 0.5–5♥ — hearts instead of stars, a deliberate break from Letterboxd's rating unit so it never reads as a price tag.
 - RLS: `profiles`, `games`, `logs`, `follows`, `log_likes` are publicly readable but writable only by their owner; `games` and `steam_library` writes are restricted to the service role (i.e. only the Edge Functions can write them); `steam_library` reads are owner-only.

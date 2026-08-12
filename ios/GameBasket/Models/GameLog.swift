@@ -8,14 +8,14 @@ struct GameLog: Codable, Identifiable {
     let id: UUID
     var userId: UUID
     var gameId: Int
-    var rating: Int? // half-star units: 1...10 == 0.5...5.0 stars
+    var rating: Int? // half-heart units: 1...10 == 0.5...5.0 hearts
     var review: String?
     var playedOn: Date?
     var status: LogStatus
     let createdAt: Date
     var updatedAt: Date
 
-    var starRating: Double? {
+    var heartRating: Double? {
         rating.map { Double($0) / 2 }
     }
 

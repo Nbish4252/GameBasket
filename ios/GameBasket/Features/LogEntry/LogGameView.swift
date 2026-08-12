@@ -12,7 +12,7 @@ struct LogGameView: View {
         Form {
             Section(game.name) {
                 Stepper(value: $rating, in: 0...5, step: 0.5) {
-                    Text("Rating: \(rating, specifier: "%.1f")★")
+                    Text("Rating: \(rating, specifier: "%.1f")♥")
                 }
                 Picker("Status", selection: $status) {
                     ForEach(LogStatus.allCases, id: \.self) { Text($0.rawValue.capitalized) }
