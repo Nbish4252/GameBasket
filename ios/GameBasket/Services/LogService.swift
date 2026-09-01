@@ -6,10 +6,13 @@ enum LogService {
         try await supabaseClient.from("logs").insert(log).execute()
     }
 
-    static func logs(for userId: UUID) async throws -> [GameLog] {
+    // Embeds the related `games` row via PostgREST's FK-based join syntax
+    // (unambiguous here since logs.game_id is the only FK to games) so the
+    // feed can render a name/cover without a second round trip.
+    static func feedItems(for userId: UUID) async throws -> [LogFeedItem] {
         try await supabaseClient
             .from("logs")
-            .select()
+            .select("id, rating, status, created_at, games(id, name, cover_url, genres)")
             .eq("user_id", value: userId)
             .order("created_at", ascending: false)
             .execute()

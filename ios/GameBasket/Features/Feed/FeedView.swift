@@ -2,13 +2,28 @@ import SwiftUI
 
 struct FeedView: View {
     @EnvironmentObject private var appState: AppState
-    @State private var logs: [GameLog] = []
+    @State private var items: [LogFeedItem] = []
     @State private var isPresentingSearch = false
 
     var body: some View {
         NavigationStack {
-            List(logs) { log in
-                Text("Game #\(log.gameId) — \(log.heartRating.map { String($0) } ?? "unrated")")
+            List(items) { item in
+                HStack {
+                    AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
+                        image.resizable().aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color.gray.opacity(0.2)
+                    }
+                    .frame(width: 40, height: 54)
+                    .clipped()
+
+                    VStack(alignment: .leading) {
+                        Text(item.game.name)
+                        Text(item.heartRating.map { String(format: "%.1f♥", $0) } ?? "unrated")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             .navigationTitle("Feed")
             .toolbar {
@@ -22,17 +37,17 @@ struct FeedView: View {
             }
             // Plain functional entry point into Search → Log Game — no nav
             // chrome/tab bar yet, that's deferred second-phase work.
-            .sheet(isPresented: $isPresentingSearch, onDismiss: { Task { await loadLogs() } }) {
+            .sheet(isPresented: $isPresentingSearch, onDismiss: { Task { await loadItems() } }) {
                 GameSearchView()
             }
             .task {
-                await loadLogs()
+                await loadItems()
             }
         }
     }
 
-    private func loadLogs() async {
+    private func loadItems() async {
         guard let userId = appState.session?.userId else { return }
-        logs = (try? await LogService.logs(for: userId)) ?? []
+        items = (try? await LogService.feedItems(for: userId)) ?? []
     }
 }
