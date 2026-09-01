@@ -31,4 +31,12 @@ enum ProfileService {
             .execute()
             .value
     }
+
+    static func updateSteamId(userId: UUID, steamId: String) async throws {
+        try await supabaseClient
+            .from("profiles")
+            .update(["steam_id": steamId])
+            .eq("id", value: userId)
+            .execute()
+    }
 }

@@ -4,6 +4,7 @@ struct FeedView: View {
     @EnvironmentObject private var appState: AppState
     @State private var items: [LogFeedItem] = []
     @State private var isPresentingSearch = false
+    @State private var isPresentingSteamSyncTest = false
 
     var body: some View {
         NavigationStack {
@@ -34,11 +35,25 @@ struct FeedView: View {
                         Image(systemName: "plus")
                     }
                 }
+                // TEMPORARY: only for testing steam-sync end to end. Remove
+                // once real profile/settings UI owns Steam linking.
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isPresentingSteamSyncTest = true
+                    } label: {
+                        Image(systemName: "ladybug")
+                    }
+                }
             }
             // Plain functional entry point into Search → Log Game — no nav
             // chrome/tab bar yet, that's deferred second-phase work.
             .sheet(isPresented: $isPresentingSearch, onDismiss: { Task { await loadItems() } }) {
                 GameSearchView()
+            }
+            .sheet(isPresented: $isPresentingSteamSyncTest) {
+                NavigationStack {
+                    SteamSyncTestView()
+                }
             }
             .task {
                 await loadItems()
