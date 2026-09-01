@@ -29,25 +29,28 @@ gamebasket/
 1. Install the CLI: `brew install supabase/tap/supabase`
 2. `cd supabase && supabase init` — this fills in `config.toml` (left out of this scaffold so it always matches your installed CLI version) without touching the `migrations/`/`functions/` already here.
 3. `supabase login` and `supabase link --project-ref <your-project-ref>` (create the project at supabase.com first).
-4. Apply the schema: `supabase db push`
-5. Set Edge Function secrets:
+4. In the dashboard, go to Authentication → Providers → Google: enable it, add the Web OAuth client's ID (see iOS step 2 below) to the allowed Client IDs, and turn on **Skip nonce checks**. This last one isn't optional for this app: GoogleSignIn-iOS's `signInWithPresentingViewController` API has no way to set or retrieve the nonce it embeds in the ID token, so Supabase's nonce verification (which hashes whatever value you send and compares it to the token's claim) can never succeed — there's no value we could send that would match. Signature, audience, issuer, and expiry checks on the token all still apply; only the replay-protection nonce check is skipped.
+5. Apply the schema: `supabase db push`
+6. Set Edge Function secrets:
    ```
    supabase secrets set IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=...
    ```
    (IGDB creds come from a Twitch dev app; Steam key from https://steamcommunity.com/dev/apikey)
-6. Deploy functions: `supabase functions deploy igdb-search && supabase functions deploy steam-sync`
+7. Deploy functions: `supabase functions deploy igdb-search && supabase functions deploy steam-sync`
 
 ### iOS
 
 1. Install XcodeGen: `brew install xcodegen`
-2. `cd ios && cp GameBasket/Secrets.xcconfig.example GameBasket/Secrets.xcconfig` and fill in your Supabase project URL/anon key (Project Settings → API in the Supabase dashboard) and your Google reversed client ID.
-3. Drop your `GoogleService-Info.plist` into `GameBasket/` (gitignored).
-4. `xcodegen generate`, then open `GameBasket.xcodeproj`.
-5. Wire your existing GoogleSignIn button into `Features/Auth/SignInView.swift`, calling `AuthService.signInWithGoogle` on success — see the TODO there.
+2. `cd ios && cp GameBasket/Secrets.xcconfig.example GameBasket/Secrets.xcconfig` and fill in:
+   - `SUPABASE_URL` / `SUPABASE_ANON_KEY` (Project Settings → API in the Supabase dashboard)
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_REVERSED_CLIENT_ID` — from an **iOS** OAuth client in Google Cloud Console for bundle ID `com.gamebasket.app`. `GOOGLE_REVERSED_CLIENT_ID` is the same ID with its segments reversed (`client-id.apps.googleusercontent.com` → `com.googleusercontent.apps.client-id`).
+   - `GOOGLE_SERVER_CLIENT_ID` — from a separate **Web** OAuth client in the same Google Cloud project. This is required, not optional: it's passed as `GIDConfiguration`'s `serverClientID` so the ID token Google issues has an audience Supabase's Google provider actually accepts. That same Web client ID also needs to be added to the allowed Client IDs list in the Supabase dashboard (Authentication → Providers → Google).
+3. `xcodegen generate`, then open `GameBasket.xcodeproj`.
 
 ## Notes
 
-- `supabase-swift`'s API shifts between versions; the calls in `Services/` are best-effort against the current SDK and haven't been compiled against a resolved package yet — check them against autocomplete once Xcode pulls the dependency.
+- `supabase-swift`'s and GoogleSignIn's APIs shift between versions; `AuthService`'s calls have been compiled and run successfully against the resolved versions (supabase-swift 2.54.1, GoogleSignIn-iOS 7.1.0) — anything elsewhere in `Services/` that hasn't been exercised yet should still be treated as unverified until it's actually run.
+- Google Sign-In requires **Skip nonce checks** enabled on Supabase's Google provider (see Supabase setup step 4) — GoogleSignIn-iOS's sign-in API doesn't expose the nonce it embeds in the ID token, so Supabase's normal nonce verification has no value we could supply that would ever match.
 - Ratings are stored as half-heart units (`smallint` 1–10) to represent 0.5–5♥ — hearts instead of stars, a deliberate break from Letterboxd's rating unit so it never reads as a price tag.
 - Logs default to `playing` status, not `completed` — people tend to log a game when they start it, not after they finish it.
 - `log_participants` tags real co-op partners on a log ("Played With") — something a film tracker has no equivalent for, since films aren't played together. Only the log's owner can add/remove tags; the tagged friend has no write access of their own.

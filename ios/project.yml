@@ -32,6 +32,8 @@ targets:
         NSFaceIDUsageDescription: "GameBasket uses Face ID to quickly and securely unlock your account."
         SUPABASE_URL: "$(SUPABASE_URL)"
         SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
+        GOOGLE_CLIENT_ID: "$(GOOGLE_CLIENT_ID)"
+        GOOGLE_SERVER_CLIENT_ID: "$(GOOGLE_SERVER_CLIENT_ID)"
         CFBundleURLTypes:
           - CFBundleURLSchemes:
               - "$(GOOGLE_REVERSED_CLIENT_ID)" # from GoogleService-Info.plist
