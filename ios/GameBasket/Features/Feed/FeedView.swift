@@ -9,29 +9,33 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             List(items) { item in
-                HStack(spacing: 12) {
-                    AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Color.gbSurface2
-                    }
-                    .frame(width: 40, height: 54)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                NavigationLink {
+                    GameDetailView(game: item.game)
+                } label: {
+                    HStack(spacing: 12) {
+                        AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Color.gbSurface2
+                        }
+                        .frame(width: 40, height: 54)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.game.name)
-                            .font(.balooSemiBold(15))
-                            .foregroundStyle(Color.gbText)
-                        HStack(spacing: 4) {
-                            PixelHeart()
-                                .frame(width: 12, height: 12)
-                            Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
-                                .font(.nunitoBold(11))
-                                .foregroundStyle(Color.gbTextDim)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.game.name)
+                                .font(.balooSemiBold(15))
+                                .foregroundStyle(Color.gbText)
+                            HStack(spacing: 4) {
+                                PixelHeart()
+                                    .frame(width: 12, height: 12)
+                                Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
+                                    .font(.nunitoBold(11))
+                                    .foregroundStyle(Color.gbTextDim)
+                            }
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
                 .listRowBackground(Color.gbSurface)
             }
             .scrollContentBackground(.hidden)

@@ -44,21 +44,35 @@ Deno.serve(async (req) => {
       "Client-ID": IGDB_CLIENT_ID,
       Authorization: `Bearer ${token}`,
     },
-    body: `search "${query}"; fields name, cover.url, first_release_date, genres.name, summary; limit 20;`,
+    body:
+      `search "${query}"; fields name, cover.url, first_release_date, genres.name, summary, external_games.uid, external_games.external_game_source; limit 20;`,
   });
   const results = await igdbRes.json();
 
-  const games = results.map((g: any) => ({
-    id: g.id,
-    name: g.name,
-    cover_url: g.cover?.url ? `https:${g.cover.url.replace("t_thumb", "t_cover_big")}` : null,
-    first_release_date: g.first_release_date
-      ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10)
-      : null,
-    genres: (g.genres ?? []).map((genre: any) => genre.name),
-    summary: g.summary ?? null,
-    synced_at: new Date().toISOString(),
-  }));
+  // IGDB's external_games.external_game_source enum: 1 = Steam (confirmed
+  // empirically against a known game — the field used to be called
+  // "category" in older IGDB docs/examples, but the live API only
+  // returns data under external_game_source now). uid is the Steam App
+  // ID as a string on that entry.
+  const STEAM_SOURCE = 1;
+
+  const games = results.map((g: any) => {
+    const steamEntry = (g.external_games ?? []).find((eg: any) => eg.external_game_source === STEAM_SOURCE);
+    const steamAppId = steamEntry ? parseInt(steamEntry.uid, 10) : null;
+
+    return {
+      id: g.id,
+      name: g.name,
+      cover_url: g.cover?.url ? `https:${g.cover.url.replace("t_thumb", "t_cover_big")}` : null,
+      first_release_date: g.first_release_date
+        ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10)
+        : null,
+      genres: (g.genres ?? []).map((genre: any) => genre.name),
+      steam_app_id: Number.isFinite(steamAppId) ? steamAppId : null,
+      summary: g.summary ?? null,
+      synced_at: new Date().toISOString(),
+    };
+  });
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   if (games.length > 0) {

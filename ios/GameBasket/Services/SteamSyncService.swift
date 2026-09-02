@@ -23,4 +23,15 @@ enum SteamSyncService {
             .execute()
             .value
     }
+
+    static func libraryEntry(for userId: UUID, steamAppId: Int) async throws -> SteamLibraryEntry? {
+        let entries: [SteamLibraryEntry] = try await supabaseClient
+            .from("steam_library")
+            .select("steam_app_id, playtime_minutes")
+            .eq("user_id", value: userId)
+            .eq("steam_app_id", value: steamAppId)
+            .execute()
+            .value
+        return entries.first
+    }
 }

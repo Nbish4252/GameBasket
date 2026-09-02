@@ -23,18 +23,27 @@ enum SupabaseConfig {
 }
 
 // Postgres timestamptz comes back as ISO 8601, sometimes with fractional
-// seconds — the default JSONDecoder can't parse Date from that alone.
+// seconds. Plain `date` columns (e.g. logs.played_on) come back as bare
+// "yyyy-MM-dd" instead — a genuinely different format, not a timestamptz
+// edge case, so it needs its own formatter rather than another ISO8601
+// option. A single JSONDecoder's dateDecodingStrategy applies uniformly
+// to every Date field it decodes, so any model mixing timestamptz and
+// date columns (like GameLog) needs this decoder to handle all three.
 private let postgresDecoder: JSONDecoder = {
     let decoder = JSONDecoder()
     let withFraction = ISO8601DateFormatter()
     withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     let withoutFraction = ISO8601DateFormatter()
     withoutFraction.formatOptions = [.withInternetDateTime]
+    let dateOnly = DateFormatter()
+    dateOnly.dateFormat = "yyyy-MM-dd"
+    dateOnly.calendar = Calendar(identifier: .iso8601)
+    dateOnly.timeZone = TimeZone(identifier: "UTC")
 
     decoder.dateDecodingStrategy = .custom { decoder in
         let container = try decoder.singleValueContainer()
         let string = try container.decode(String.self)
-        if let date = withFraction.date(from: string) ?? withoutFraction.date(from: string) {
+        if let date = withFraction.date(from: string) ?? withoutFraction.date(from: string) ?? dateOnly.date(from: string) {
             return date
         }
         throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")

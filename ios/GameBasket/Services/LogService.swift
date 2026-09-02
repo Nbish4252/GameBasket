@@ -8,11 +8,14 @@ enum LogService {
 
     // Embeds the related `games` row via PostgREST's FK-based join syntax
     // (unambiguous here since logs.game_id is the only FK to games) so the
-    // feed can render a name/cover without a second round trip.
+    // feed can render a name/cover without a second round trip. games(*)
+    // rather than an explicit column list so callers relying on the
+    // embedded Game (e.g. GameDetailView needing steam_app_id) don't
+    // silently get nil fields the select forgot to ask for.
     static func feedItems(for userId: UUID) async throws -> [LogFeedItem] {
         try await supabaseClient
             .from("logs")
-            .select("id, rating, status, created_at, games(id, name, cover_url, genres)")
+            .select("id, rating, status, created_at, games(*)")
             .eq("user_id", value: userId)
             .order("created_at", ascending: false)
             .execute()
@@ -34,5 +37,43 @@ enum LogService {
 
         let rows = profileIds.map { NewParticipant(logId: logId, profileId: $0) }
         try await supabaseClient.from("log_participants").insert(rows).execute()
+    }
+
+    // logs has no uniqueness constraint on (user_id, game_id) — a user
+    // could log the same game more than once over time. "The" log for a
+    // game detail page is the most recent one.
+    static func mostRecentLog(for userId: UUID, gameId: Int) async throws -> GameLog? {
+        let logs: [GameLog] = try await supabaseClient
+            .from("logs")
+            .select()
+            .eq("user_id", value: userId)
+            .eq("game_id", value: gameId)
+            .order("created_at", ascending: false)
+            .limit(1)
+            .execute()
+            .value
+        return logs.first
+    }
+
+    // profiles(*) rather than an explicit column list — log_participants
+    // has exactly one FK to profiles (profile_id), so the embed is
+    // unambiguous, and selecting the full row avoids re-declaring every
+    // Profile field here just to satisfy its non-optional properties.
+    static func participants(for logId: UUID) async throws -> [Profile] {
+        struct ParticipantRow: Decodable {
+            let profile: Profile
+
+            enum CodingKeys: String, CodingKey {
+                case profile = "profiles"
+            }
+        }
+
+        let rows: [ParticipantRow] = try await supabaseClient
+            .from("log_participants")
+            .select("profiles(*)")
+            .eq("log_id", value: logId)
+            .execute()
+            .value
+        return rows.map(\.profile)
     }
 }
