@@ -38,6 +38,9 @@ targets:
           - CFBundleURLSchemes:
               - "$(GOOGLE_REVERSED_CLIENT_ID)" # from GoogleService-Info.plist
         UILaunchScreen: {}
+        UIAppFonts:
+          - Baloo2-VariableFont_wght.ttf
+          - Nunito-VariableFont_wght.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.gamebasket.app

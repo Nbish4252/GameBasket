@@ -16,44 +16,81 @@ struct LogGameView: View {
 
     var body: some View {
         Form {
-            Section(game.name) {
+            Section(
+                header: Text(game.name)
+                    .font(.balooSemiBold(15))
+                    .foregroundStyle(Color.gbText)
+            ) {
                 Stepper(value: $rating, in: 0...5, step: 0.5) {
-                    Text("Rating: \(rating, specifier: "%.1f")♥")
+                    HStack(spacing: 6) {
+                        PixelHeart()
+                            .frame(width: 14, height: 14)
+                        Text("Rating: \(rating, specifier: "%.1f")")
+                            .font(.nunito(15))
+                            .foregroundStyle(Color.gbText)
+                    }
                 }
+                .listRowBackground(Color.gbSurface)
+
                 Picker("Status", selection: $status) {
                     ForEach(LogStatus.allCases, id: \.self) { Text($0.rawValue.capitalized) }
                 }
+                .listRowBackground(Color.gbSurface)
+
                 DatePicker("Played on", selection: $playedOn, displayedComponents: .date)
+                    .listRowBackground(Color.gbSurface)
+
                 TextField("Review (optional)", text: $review, axis: .vertical)
+                    .listRowBackground(Color.gbSurface)
             }
 
             if !friends.isEmpty {
-                Section("Played with") {
+                Section(
+                    header: Text("Played with")
+                        .font(.balooSemiBold(13))
+                        .foregroundStyle(Color.gbTextFaint)
+                ) {
                     ForEach(friends) { friend in
                         Button {
                             toggle(friend.id)
                         } label: {
                             HStack {
                                 Text(friend.displayName ?? friend.username)
+                                    .font(.nunito(15))
+                                    .foregroundStyle(Color.gbText)
                                 Spacer()
                                 if participantIds.contains(friend.id) {
                                     Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.gbGreen)
                                 }
                             }
                         }
                         .buttonStyle(.plain)
-                        .foregroundStyle(.primary)
+                        .listRowBackground(Color.gbSurface)
                     }
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.gbBackground)
         .navigationTitle("Log Game")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Log Game")
+                    .font(.balooBold(17))
+                    .foregroundStyle(Color.gbText)
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { Task { await save() } }
                     .disabled(isSaving)
+                    .tint(Color.gbGreen)
             }
         }
+        .toolbarBackground(Color.gbBackground, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .preferredColorScheme(.dark)
         .task {
             guard let userId = appState.session?.userId else { return }
             friends = (try? await ProfileService.following(for: userId)) ?? []

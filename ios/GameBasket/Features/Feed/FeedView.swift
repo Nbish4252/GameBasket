@@ -9,31 +9,48 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             List(items) { item in
-                HStack {
+                HStack(spacing: 12) {
                     AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
                         image.resizable().aspectRatio(contentMode: .fill)
                     } placeholder: {
-                        Color.gray.opacity(0.2)
+                        Color.gbSurface2
                     }
                     .frame(width: 40, height: 54)
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(item.game.name)
-                        Text(item.heartRating.map { String(format: "%.1f♥", $0) } ?? "unrated")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.balooSemiBold(15))
+                            .foregroundStyle(Color.gbText)
+                        HStack(spacing: 4) {
+                            PixelHeart()
+                                .frame(width: 12, height: 12)
+                            Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
+                                .font(.nunitoBold(11))
+                                .foregroundStyle(Color.gbTextDim)
+                        }
                     }
                 }
+                .padding(.vertical, 4)
+                .listRowBackground(Color.gbSurface)
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.gbBackground)
             .navigationTitle("Feed")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Feed")
+                        .font(.balooBold(20))
+                        .foregroundStyle(Color.gbText)
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         isPresentingSearch = true
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .tint(Color.gbGreen)
                 }
                 // TEMPORARY: only for testing steam-sync end to end. Remove
                 // once real profile/settings UI owns Steam linking.
@@ -43,8 +60,12 @@ struct FeedView: View {
                     } label: {
                         Image(systemName: "ladybug")
                     }
+                    .tint(Color.gbGold)
                 }
             }
+            .toolbarBackground(Color.gbBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             // Plain functional entry point into Search → Log Game — no nav
             // chrome/tab bar yet, that's deferred second-phase work.
             .sheet(isPresented: $isPresentingSearch, onDismiss: { Task { await loadItems() } }) {
@@ -59,6 +80,7 @@ struct FeedView: View {
                 await loadItems()
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     private func loadItems() async {
