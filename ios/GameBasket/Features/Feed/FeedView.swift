@@ -3,7 +3,6 @@ import SwiftUI
 struct FeedView: View {
     @EnvironmentObject private var appState: AppState
     @State private var items: [LogFeedItem] = []
-    @State private var isPresentingSteamSyncTest = false
 
     var body: some View {
         NavigationStack {
@@ -47,25 +46,10 @@ struct FeedView: View {
                         .font(.balooBold(20))
                         .foregroundStyle(Color.gbText)
                 }
-                // TEMPORARY: only for testing steam-sync end to end. Remove
-                // once real profile/settings UI owns Steam linking.
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        isPresentingSteamSyncTest = true
-                    } label: {
-                        Image(systemName: "ladybug")
-                    }
-                    .tint(Color.gbGold)
-                }
             }
             .toolbarBackground(Color.gbBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .sheet(isPresented: $isPresentingSteamSyncTest) {
-                NavigationStack {
-                    SteamSyncTestView()
-                }
-            }
             // .onAppear rather than .task: Search now lives in its own tab
             // (MainTabView), so a log created there doesn't recreate this
             // view — .task would only fire once, before that log exists.
