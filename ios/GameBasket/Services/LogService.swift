@@ -22,6 +22,43 @@ enum LogService {
             .value
     }
 
+    // Both discovery-row queries below share this shape (a log embedding
+    // its game and poster). games(*) is unambiguous (logs.game_id is the
+    // only path PostgREST finds between logs and games), but plain
+    // profiles(*) is NOT: log_likes and log_participants each carry a
+    // second FK pair connecting logs to profiles as a many-to-many
+    // junction, so PostgREST sees 3 candidate paths and 400s asking for
+    // profiles!logs_user_id_fkey(*) — confirmed by hitting the REST API
+    // directly. profiles(*) alone would build and even pass typechecking,
+    // then fail at runtime, so this is worth getting right up front.
+
+    // Bounded to a recent window rather than "all of a friend's history"
+    // — this is a discovery feed, not an archive, and it keeps both the
+    // "new" ordering and the "popular" tally (computed client-side from
+    // this same array) cheap at any realistic friend-count.
+    static func friendActivity(followingIds: [UUID], limit: Int = 50) async throws -> [PostedLog] {
+        guard !followingIds.isEmpty else { return [] }
+        return try await supabaseClient
+            .from("logs")
+            .select("id, rating, review, created_at, games(*), profiles!logs_user_id_fkey(*)")
+            .in("user_id", value: followingIds)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+    }
+
+    static func recentReviews(limit: Int = 30) async throws -> [PostedLog] {
+        try await supabaseClient
+            .from("logs")
+            .select("id, rating, review, created_at, games(*), profiles!logs_user_id_fkey(*)")
+            .not("review", operator: .is, value: "null")
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+    }
+
     static func tagParticipants(logId: UUID, profileIds: [UUID]) async throws {
         guard !profileIds.isEmpty else { return }
 

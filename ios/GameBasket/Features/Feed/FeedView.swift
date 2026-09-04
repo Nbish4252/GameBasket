@@ -1,66 +1,29 @@
 import SwiftUI
 
+enum FeedTopTab: String, CaseIterable {
+    case games = "Games"
+    case reviews = "Reviews"
+    case lists = "Lists"
+    case journal = "Journal"
+}
+
 struct FeedView: View {
-    @EnvironmentObject private var appState: AppState
-    @State private var items: [LogFeedItem] = []
-    @State private var recommendations: [GameRecommendation] = []
+    @State private var selectedTab: FeedTopTab = .games
 
     var body: some View {
         NavigationStack {
-            List {
-                if !recommendations.isEmpty {
-                    Section {
-                        ForEach(recommendations) { rec in
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(rec.title)
-                                    .font(.balooSemiBold(14))
-                                    .foregroundStyle(Color.gbText)
-                                Text(rec.reason)
-                                    .font(.nunito(12))
-                                    .foregroundStyle(Color.gbTextDim)
-                            }
-                            .padding(.vertical, 4)
-                            .listRowBackground(Color.gbSurface)
-                        }
-                    } header: {
-                        Text("Recommended For You")
-                            .font(.balooSemiBold(13))
-                            .foregroundStyle(Color.gbTextFaint)
+            VStack(spacing: 0) {
+                topTabRow
+                Divider().background(Color.gbLine)
+                Group {
+                    switch selectedTab {
+                    case .games: GamesDiscoveryView()
+                    case .reviews: ReviewsView()
+                    case .lists: ListsComingSoonView()
+                    case .journal: JournalView()
                     }
-                }
-
-                ForEach(items) { item in
-                    NavigationLink {
-                        GameDetailView(game: item.game)
-                    } label: {
-                        HStack(spacing: 12) {
-                            AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
-                                image.resizable().aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Color.gbSurface2
-                            }
-                            .frame(width: 40, height: 54)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.game.name)
-                                    .font(.balooSemiBold(15))
-                                    .foregroundStyle(Color.gbText)
-                                HStack(spacing: 4) {
-                                    PixelHeart()
-                                        .frame(width: 12, height: 12)
-                                    Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
-                                        .font(.nunitoBold(11))
-                                        .foregroundStyle(Color.gbTextDim)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .listRowBackground(Color.gbSurface)
                 }
             }
-            .scrollContentBackground(.hidden)
             .background(Color.gbBackground)
             .navigationTitle("Feed")
             .navigationBarTitleDisplayMode(.inline)
@@ -74,24 +37,33 @@ struct FeedView: View {
             .toolbarBackground(Color.gbBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            // .onAppear rather than .task: Search now lives in its own tab
-            // (MainTabView), so a log created there doesn't recreate this
-            // view — .task would only fire once, before that log exists.
-            .onAppear {
-                Task { await loadItems() }
-            }
-            // .task rather than .onAppear: unlike the log list, this costs
-            // a real LLM call each time — load it once per view identity,
-            // not on every tab revisit.
-            .task {
-                recommendations = (try? await RecommendationService.recommendations()) ?? []
-            }
         }
         .preferredColorScheme(.dark)
     }
 
-    private func loadItems() async {
-        guard let userId = appState.session?.userId else { return }
-        items = (try? await LogService.feedItems(for: userId)) ?? []
+    // Mirrors the mockup's .tabs/.tab/.tab.active exactly: Nunito
+    // ExtraBold 12.5px, text-faint when inactive, text color + a 3px
+    // green underline bar when active.
+    private var topTabRow: some View {
+        HStack(spacing: 0) {
+            ForEach(FeedTopTab.allCases, id: \.self) { tab in
+                Button {
+                    selectedTab = tab
+                } label: {
+                    VStack(spacing: 8) {
+                        Text(tab.rawValue)
+                            .font(.nunitoExtraBold(12.5))
+                            .foregroundStyle(selectedTab == tab ? Color.gbText : Color.gbTextFaint)
+                        Rectangle()
+                            .fill(selectedTab == tab ? Color.gbGreen : Color.clear)
+                            .frame(height: 3)
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 4)
     }
 }
