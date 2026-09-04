@@ -45,3 +45,4 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.gamebasket.app
         SWIFT_VERSION: "5.0"
+    scheme: {}
