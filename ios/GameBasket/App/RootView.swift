@@ -5,7 +5,7 @@ struct RootView: View {
 
     var body: some View {
         if appState.isSignedIn {
-            FeedView()
+            MainTabView()
         } else {
             SignInView()
         }
