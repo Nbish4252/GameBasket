@@ -3,38 +3,62 @@ import SwiftUI
 struct FeedView: View {
     @EnvironmentObject private var appState: AppState
     @State private var items: [LogFeedItem] = []
+    @State private var recommendations: [GameRecommendation] = []
 
     var body: some View {
         NavigationStack {
-            List(items) { item in
-                NavigationLink {
-                    GameDetailView(game: item.game)
-                } label: {
-                    HStack(spacing: 12) {
-                        AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Color.gbSurface2
-                        }
-                        .frame(width: 40, height: 54)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(item.game.name)
-                                .font(.balooSemiBold(15))
-                                .foregroundStyle(Color.gbText)
-                            HStack(spacing: 4) {
-                                PixelHeart()
-                                    .frame(width: 12, height: 12)
-                                Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
-                                    .font(.nunitoBold(11))
+            List {
+                if !recommendations.isEmpty {
+                    Section {
+                        ForEach(recommendations) { rec in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(rec.title)
+                                    .font(.balooSemiBold(14))
+                                    .foregroundStyle(Color.gbText)
+                                Text(rec.reason)
+                                    .font(.nunito(12))
                                     .foregroundStyle(Color.gbTextDim)
                             }
+                            .padding(.vertical, 4)
+                            .listRowBackground(Color.gbSurface)
                         }
+                    } header: {
+                        Text("Recommended For You")
+                            .font(.balooSemiBold(13))
+                            .foregroundStyle(Color.gbTextFaint)
                     }
-                    .padding(.vertical, 4)
                 }
-                .listRowBackground(Color.gbSurface)
+
+                ForEach(items) { item in
+                    NavigationLink {
+                        GameDetailView(game: item.game)
+                    } label: {
+                        HStack(spacing: 12) {
+                            AsyncImage(url: item.game.coverUrl.flatMap(URL.init)) { image in
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } placeholder: {
+                                Color.gbSurface2
+                            }
+                            .frame(width: 40, height: 54)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.game.name)
+                                    .font(.balooSemiBold(15))
+                                    .foregroundStyle(Color.gbText)
+                                HStack(spacing: 4) {
+                                    PixelHeart()
+                                        .frame(width: 12, height: 12)
+                                    Text(item.heartRating.map { String(format: "%.1f", $0) } ?? "unrated")
+                                        .font(.nunitoBold(11))
+                                        .foregroundStyle(Color.gbTextDim)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .listRowBackground(Color.gbSurface)
+                }
             }
             .scrollContentBackground(.hidden)
             .background(Color.gbBackground)
@@ -55,6 +79,12 @@ struct FeedView: View {
             // view — .task would only fire once, before that log exists.
             .onAppear {
                 Task { await loadItems() }
+            }
+            // .task rather than .onAppear: unlike the log list, this costs
+            // a real LLM call each time — load it once per view identity,
+            // not on every tab revisit.
+            .task {
+                recommendations = (try? await RecommendationService.recommendations()) ?? []
             }
         }
         .preferredColorScheme(.dark)

@@ -17,7 +17,8 @@ gamebasket/
     ├── migrations/            # SQL schema, applied via the Supabase CLI
     └── functions/             # Edge Functions (Deno/TS)
         ├── igdb-search/       # Proxies IGDB, caches results into `games`
-        └── steam-sync/        # Pulls a linked Steam library + playtime
+        ├── steam-sync/        # Pulls a linked Steam library + playtime
+        └── recommend-games/   # Claude-powered recs from the caller's highly-rated logs
 ```
 
 `igdb-search` doubles as the cache-warmer for `games` — there's no separate sync job for MVP; if a bulk refresh job turns out to be needed later, add it as its own function then.
@@ -33,10 +34,10 @@ gamebasket/
 5. Apply the schema: `supabase db push`
 6. Set Edge Function secrets:
    ```
-   supabase secrets set IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=...
+   supabase secrets set IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=... ANTHROPIC_API_KEY=...
    ```
-   (IGDB creds come from a Twitch dev app; Steam key from https://steamcommunity.com/dev/apikey)
-7. Deploy functions: `supabase functions deploy igdb-search && supabase functions deploy steam-sync`
+   (IGDB creds come from a Twitch dev app; Steam key from https://steamcommunity.com/dev/apikey; Anthropic key from https://console.anthropic.com)
+7. Deploy functions: `supabase functions deploy igdb-search && supabase functions deploy steam-sync && supabase functions deploy recommend-games`
 
 ### iOS
 
@@ -55,3 +56,4 @@ gamebasket/
 - Logs default to `playing` status, not `completed` — people tend to log a game when they start it, not after they finish it.
 - `log_participants` tags real co-op partners on a log ("Played With") — something a film tracker has no equivalent for, since films aren't played together. Only the log's owner can add/remove tags; the tagged friend has no write access of their own.
 - RLS: `profiles`, `games`, `logs`, `follows`, `log_likes`, and `log_participants` are publicly readable but writable only by their owner (for `log_participants`, "owner" means whoever owns the parent log, not the tagged friend); `games` and `steam_library` writes are restricted to the service role (i.e. only the Edge Functions can write them); `steam_library` reads are owner-only.
+- `recommend-games` uses Claude's structured outputs (`output_config: {format: {type: "json_schema", ...}}`) so the response is guaranteed-parseable JSON — no free-text parsing on the client. Uses Claude Haiku 4.5, not Opus/Sonnet: this is a short, low-stakes extraction/recommendation task (a handful of titles in, a handful out), and Haiku is ~5x cheaper at that tier — the kind of workload where a bigger model doesn't buy meaningfully better output. Returns an early, uncalled-Claude empty result if the caller has no highly-rated (≥4.0 heart) logs yet, both to avoid spending a call on insufficient signal and because "log a few games you love" is a better empty state than a generic recommendation.
