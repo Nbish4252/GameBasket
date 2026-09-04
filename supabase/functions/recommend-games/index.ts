@@ -1,17 +1,28 @@
 // Recommends a handful of games based on the caller's own highly-rated
-// logs, via a single structured-output call to the Claude API. Expects
-// the caller's Supabase JWT (same auth pattern as steam-sync) so we can
-// resolve which profile's logs to read.
+// logs, via a single structured-output call to the Claude API — routed
+// through Cloudflare AI Gateway (for request logging/caching/analytics)
+// rather than hitting api.anthropic.com directly. Expects the caller's
+// Supabase JWT (same auth pattern as steam-sync) so we can resolve which
+// profile's logs to read.
 //
 // Required secrets (`supabase secrets set ...`):
-//   ANTHROPIC_API_KEY
+//   ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN
 // Provided automatically by the Supabase runtime:
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// Not secrets — an AI Gateway account ID + gateway name are routing
+// path segments, not credentials (the credential is CLOUDFLARE_API_TOKEN
+// above).
+const CLOUDFLARE_ACCOUNT_ID = "48def61faadea331d8b42a1c110c9a60";
+const CLOUDFLARE_GATEWAY_ID = "gamebasket";
+const ANTHROPIC_MESSAGES_URL =
+  `https://gateway.ai.cloudflare.com/v1/${CLOUDFLARE_ACCOUNT_ID}/${CLOUDFLARE_GATEWAY_ID}/anthropic/v1/messages`;
 
 // Half-heart rating units (see logs.rating) — 8 == 4.0 hearts. Below this
 // a log doesn't tell us the user *loved* the game, just that they played it.
@@ -91,12 +102,24 @@ Deno.serve(async (req) => {
       : "") +
     `Recommend 3-5 other real games they'd likely enjoy, with a one-sentence reason each grounded in what they rated highly.`;
 
-  const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+  // NOTE ON AUTH HEADERS: Cloudflare's docs are genuinely ambiguous on
+  // whether cf-aig-authorization (gateway-access auth) is meant to be
+  // sent *alongside* the provider's own x-api-key, or *instead of* it
+  // (that "instead of" mode — BYOK/Unified Billing — needs an Anthropic
+  // key stored in the Cloudflare dashboard, which hasn't been set up
+  // here). Sending both is the safer bet: it keeps our own
+  // ANTHROPIC_API_KEY as the credential that actually pays for the
+  // Anthropic call, while satisfying Authenticated Gateway if that's
+  // enabled on this gateway. If this 401s, the fix is almost certainly
+  // in the gateway's dashboard config (Authenticated Gateway on/off),
+  // not this code — check that before assuming the header is wrong.
+  const anthropicRes = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": ANTHROPIC_API_KEY,
       "anthropic-version": "2023-06-01",
+      "cf-aig-authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5",

@@ -34,9 +34,9 @@ gamebasket/
 5. Apply the schema: `supabase db push`
 6. Set Edge Function secrets:
    ```
-   supabase secrets set IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=... ANTHROPIC_API_KEY=...
+   supabase secrets set IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=... STEAM_API_KEY=... ANTHROPIC_API_KEY=... CLOUDFLARE_API_TOKEN=...
    ```
-   (IGDB creds come from a Twitch dev app; Steam key from https://steamcommunity.com/dev/apikey; Anthropic key from https://console.anthropic.com)
+   (IGDB creds come from a Twitch dev app; Steam key from https://steamcommunity.com/dev/apikey; Anthropic key from https://console.anthropic.com; Cloudflare token needs `AI Gateway Run` permission — create an AI Gateway named `gamebasket` first at https://dash.cloudflare.com → AI → AI Gateway)
 7. Deploy functions: `supabase functions deploy igdb-search && supabase functions deploy steam-sync && supabase functions deploy recommend-games`
 
 ### iOS
@@ -57,3 +57,4 @@ gamebasket/
 - `log_participants` tags real co-op partners on a log ("Played With") — something a film tracker has no equivalent for, since films aren't played together. Only the log's owner can add/remove tags; the tagged friend has no write access of their own.
 - RLS: `profiles`, `games`, `logs`, `follows`, `log_likes`, and `log_participants` are publicly readable but writable only by their owner (for `log_participants`, "owner" means whoever owns the parent log, not the tagged friend); `games` and `steam_library` writes are restricted to the service role (i.e. only the Edge Functions can write them); `steam_library` reads are owner-only.
 - `recommend-games` uses Claude's structured outputs (`output_config: {format: {type: "json_schema", ...}}`) so the response is guaranteed-parseable JSON — no free-text parsing on the client. Uses Claude Haiku 4.5, not Opus/Sonnet: this is a short, low-stakes extraction/recommendation task (a handful of titles in, a handful out), and Haiku is ~5x cheaper at that tier — the kind of workload where a bigger model doesn't buy meaningfully better output. Returns an early, uncalled-Claude empty result if the caller has no highly-rated (≥4.0 heart) logs yet, both to avoid spending a call on insufficient signal and because "log a few games you love" is a better empty state than a generic recommendation.
+- `recommend-games` routes its Anthropic call through Cloudflare AI Gateway (`gateway.ai.cloudflare.com/v1/{account}/gamebasket/anthropic/v1/messages`) instead of `api.anthropic.com` directly, for request logging/caching/analytics in the Cloudflare dashboard. Sends both the Anthropic API key (`x-api-key`, still the credential that actually pays for the call) and a Cloudflare gateway token (`cf-aig-authorization`) — Cloudflare's docs don't clearly state whether the gateway-auth header is meant to be sent alongside a provider key or only in BYOK mode, so this sends both as the safer option; account ID and gateway name are hardcoded in the function since they're routing path segments, not credentials.
