@@ -11,8 +11,10 @@ struct ActivityView: View {
                 if !hasLoaded {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
                 } else if items.isEmpty {
                     emptyState
+                        .transition(.opacity)
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -27,6 +29,7 @@ struct ActivityView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding()
                     }
+                    .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,6 +122,8 @@ struct ActivityView: View {
     private func load() async {
         guard let userId = appState.session?.userId else { return }
         items = (try? await ActivityService.recentActivity(for: userId)) ?? []
-        hasLoaded = true
+        withAnimation(.easeOut(duration: 0.25)) {
+            hasLoaded = true
+        }
     }
 }

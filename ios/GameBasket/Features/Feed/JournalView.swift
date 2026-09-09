@@ -12,6 +12,7 @@ struct JournalView: View {
             if !hasLoaded {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
             } else if items.isEmpty {
                 VStack(spacing: 8) {
                     Text("No logs yet")
@@ -22,6 +23,7 @@ struct JournalView: View {
                         .foregroundStyle(Color.gbTextFaint)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
@@ -63,6 +65,7 @@ struct JournalView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding()
                 }
+                .transition(.opacity)
             }
         }
         .background(Color.gbBackground)
@@ -77,6 +80,8 @@ struct JournalView: View {
     private func load() async {
         guard let userId = appState.session?.userId else { return }
         items = (try? await LogService.feedItems(for: userId)) ?? []
-        hasLoaded = true
+        withAnimation(.easeOut(duration: 0.25)) {
+            hasLoaded = true
+        }
     }
 }

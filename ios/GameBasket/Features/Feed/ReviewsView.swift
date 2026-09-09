@@ -12,6 +12,7 @@ struct ReviewsView: View {
             if !hasLoaded {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
             } else if reviews.isEmpty {
                 VStack(spacing: 8) {
                     Text("No reviews yet")
@@ -24,6 +25,7 @@ struct ReviewsView: View {
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
             } else {
                 ScrollView {
                     VStack(spacing: 12) {
@@ -68,12 +70,15 @@ struct ReviewsView: View {
                     }
                     .padding()
                 }
+                .transition(.opacity)
             }
         }
         .background(Color.gbBackground)
         .task {
             reviews = (try? await LogService.recentReviews()) ?? []
-            hasLoaded = true
+            withAnimation(.easeOut(duration: 0.25)) {
+                hasLoaded = true
+            }
         }
     }
 }

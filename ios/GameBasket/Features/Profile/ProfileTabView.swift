@@ -13,8 +13,10 @@ struct ProfileTabView: View {
             Group {
                 if let profile {
                     ProfileView(profile: profile, logs: logs)
+                        .transition(.opacity)
                 } else {
                     ProgressView()
+                        .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -52,7 +54,10 @@ struct ProfileTabView: View {
         guard let userId = appState.session?.userId else { return }
         async let profileFetch = ProfileService.profile(for: userId)
         async let logsFetch = LogService.feedItems(for: userId)
-        profile = try? await profileFetch
-        logs = (try? await logsFetch) ?? []
+        let (fetchedProfile, fetchedLogs) = (try? await profileFetch, (try? await logsFetch) ?? [])
+        withAnimation(.easeOut(duration: 0.25)) {
+            profile = fetchedProfile
+            logs = fetchedLogs
+        }
     }
 }

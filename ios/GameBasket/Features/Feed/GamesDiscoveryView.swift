@@ -49,35 +49,46 @@ struct GamesDiscoveryView: View {
             VStack(alignment: .leading, spacing: 4) {
                 sectionHeader("Popular this week")
                 if !hasLoadedTrending {
-                    loadingRow
+                    shimmerRow
+                        .transition(.opacity)
                 } else if popularThisWeek.isEmpty {
                     emptyCard("Nothing logged this week yet.")
+                        .transition(.opacity)
                 } else {
                     coverRow(popularThisWeek)
+                        .transition(.opacity)
                 }
 
                 sectionHeader("New from friends")
                     .padding(.top, 14)
                 if !hasLoadedFriendData {
-                    loadingRow
+                    shimmerRow
+                        .transition(.opacity)
                 } else if !isFollowingAnyone {
                     emptyCard("Follow people to see what they're playing.")
+                        .transition(.opacity)
                 } else if newFromFriends.isEmpty {
                     emptyCard("Your friends haven't logged anything yet.")
+                        .transition(.opacity)
                 } else {
                     friendRow(newFromFriends)
+                        .transition(.opacity)
                 }
 
                 sectionHeader("Popular with friends")
                     .padding(.top, 14)
                 if !hasLoadedFriendData {
-                    loadingRow
+                    shimmerRow
+                        .transition(.opacity)
                 } else if !isFollowingAnyone {
                     emptyCard("Follow people to see what's popular in your circle.")
+                        .transition(.opacity)
                 } else if popularWithFriends.isEmpty {
                     emptyCard("Your friends haven't logged anything yet.")
+                        .transition(.opacity)
                 } else {
                     coverRow(popularWithFriends)
+                        .transition(.opacity)
                 }
 
                 if !recommendations.isEmpty {
@@ -115,8 +126,11 @@ struct GamesDiscoveryView: View {
             recommendations = (try? await RecommendationService.recommendations()) ?? []
         }
         .task {
-            trendingLogs = (try? await LogService.recentlyLoggedGames()) ?? []
-            hasLoadedTrending = true
+            let games = (try? await LogService.recentlyLoggedGames()) ?? []
+            withAnimation(.easeOut(duration: 0.25)) {
+                trendingLogs = games
+                hasLoadedTrending = true
+            }
         }
     }
 
@@ -128,10 +142,18 @@ struct GamesDiscoveryView: View {
             .padding(.horizontal, 18)
     }
 
-    private var loadingRow: some View {
-        ProgressView()
-            .padding(.horizontal, 18)
-            .padding(.top, 8)
+    // A row of pulsing cover-sized placeholders rather than a lone
+    // spinner — this is the one section where a bare ProgressView left
+    // the biggest visual gap against the real content's shape.
+    private var shimmerRow: some View {
+        HStack(spacing: 12) {
+            ForEach(0..<4, id: \.self) { _ in
+                ShimmerPlaceholder()
+                    .frame(width: 88, height: 118)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 8)
     }
 
     @ViewBuilder
@@ -218,10 +240,14 @@ struct GamesDiscoveryView: View {
     private func loadFriendData() async {
         guard let userId = appState.session?.userId else { return }
         let following = (try? await ProfileService.following(for: userId)) ?? []
-        isFollowingAnyone = !following.isEmpty
-        if isFollowingAnyone {
-            friendActivity = (try? await LogService.friendActivity(followingIds: following.map(\.id))) ?? []
+        let followingAnyone = !following.isEmpty
+        let activity = followingAnyone
+            ? (try? await LogService.friendActivity(followingIds: following.map(\.id))) ?? []
+            : []
+        withAnimation(.easeOut(duration: 0.25)) {
+            isFollowingAnyone = followingAnyone
+            friendActivity = activity
+            hasLoadedFriendData = true
         }
-        hasLoadedFriendData = true
     }
 }
