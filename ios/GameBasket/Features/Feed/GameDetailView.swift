@@ -1,13 +1,12 @@
 import SwiftUI
 
 // Scoped to what the schema actually supports today: name/cover/release
-// date/genres, description, the signed-in user's own most recent log
-// (with played-with tags), community rating distribution + average
-// (site-wide, from every log on this game), "friends who rated this"
-// (via `follows`), and Steam playtime if a steam_app_id match exists.
-// Deliberately NOT included, since we have no real data behind them:
-// store links, playtime estimate, platforms, developer — those need new
-// `games` columns and an IGDB fetch update, not just a new query.
+// date/genres/platforms/developer, description, an IGDB-sourced
+// playtime estimate and storefront links, the signed-in user's own most
+// recent log (with played-with tags), community rating distribution +
+// average (site-wide, from every log on this game), "friends who rated
+// this" (via `follows`), and Steam playtime if a steam_app_id match
+// exists.
 struct GameDetailView: View {
     let game: Game
 
@@ -47,10 +46,18 @@ struct GameDetailView: View {
                     }
                 }
 
+                if hasMetaStripContent {
+                    metaStrip
+                }
+
                 if let summary = game.summary, !summary.isEmpty {
                     Text(summary)
                         .font(.nunito(13))
                         .foregroundStyle(Color.gbTextDim)
+                }
+
+                if !game.storeLinks.isEmpty {
+                    storeLinksRow
                 }
 
                 if !communityRatings.isEmpty {
@@ -118,6 +125,51 @@ struct GameDetailView: View {
     private var releaseYear: String? {
         guard let date = game.firstReleaseDate else { return nil }
         return String(Calendar.current.component(.year, from: date))
+    }
+
+    private var hasMetaStripContent: Bool {
+        game.playtimeEstimateMinutes != nil || !game.platforms.isEmpty || game.developer != nil
+    }
+
+    // "~X hrs to beat" rather than "X hrs played" — deliberately distinct
+    // wording from the Steam Playtime card below, since these are two
+    // different numbers: this one is IGDB's site-wide "time to beat"
+    // estimate, that one is the signed-in user's own tracked playtime.
+    private var metaStrip: some View {
+        HStack(spacing: 14) {
+            if let minutes = game.playtimeEstimateMinutes {
+                HStack(spacing: 4) {
+                    Image(systemName: "gamecontroller")
+                    Text("~\(minutes / 60) hrs to beat")
+                }
+            }
+            if !game.platforms.isEmpty {
+                Text(game.platforms.joined(separator: " · "))
+            }
+            if let developer = game.developer {
+                Text(developer)
+            }
+        }
+        .font(.nunitoSemiBold(11))
+        .foregroundStyle(Color.gbTextFaint)
+    }
+
+    private var storeLinksRow: some View {
+        HStack(spacing: 8) {
+            ForEach(game.storeLinks) { link in
+                if let url = URL(string: link.url) {
+                    Link(destination: url) {
+                        Text(link.label)
+                            .font(.nunitoSemiBold(11))
+                            .foregroundStyle(Color.gbText)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.gbSurface2)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
     }
 
     // 10 buckets matching our real granularity (half-heart units, 1...10)
