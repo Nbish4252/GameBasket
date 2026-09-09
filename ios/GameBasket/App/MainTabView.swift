@@ -15,11 +15,11 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             FeedView()
-                .tabItem { Label("Feed", systemImage: "square.stack") }
+                .tabItem { tabIcon("square.stack", isSelected: selectedTab == .feed, title: "Feed") }
                 .tag(MainTab.feed)
 
             GameSearchView()
-                .tabItem { Label("Search", systemImage: "magnifyingglass") }
+                .tabItem { tabIcon("magnifyingglass", isSelected: selectedTab == .search, title: "Search") }
                 .tag(MainTab.search)
 
             // Never actually shown — SwiftUI's TabView has no API for a
@@ -32,11 +32,11 @@ struct MainTabView: View {
                 .tag(MainTab.quickLog)
 
             ActivityView()
-                .tabItem { Label("Activity", systemImage: "bolt.fill") }
+                .tabItem { tabIcon("bolt.fill", isSelected: selectedTab == .activity, title: "Activity") }
                 .tag(MainTab.activity)
 
             ProfileTabView()
-                .tabItem { Label("Profile", systemImage: "person.circle") }
+                .tabItem { tabIcon("person.circle", isSelected: selectedTab == .profile, title: "Profile") }
                 .tag(MainTab.profile)
         }
         .tint(Color.gbGreen)
@@ -61,6 +61,21 @@ struct MainTabView: View {
         // plain swipe-down after logging.
         .sheet(isPresented: $isPresentingQuickLog) {
             GameSearchView()
+        }
+    }
+
+    // Each icon watches only its own tab's selected state, not the whole
+    // selectedTab value — attaching .symbolEffect to a value shared by
+    // all five icons would bounce all five at once on every switch,
+    // which reads as noisy rather than as feedback on the one tab that
+    // changed.
+    @ViewBuilder
+    private func tabIcon(_ systemImage: String, isSelected: Bool, title: String) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image(systemName: systemImage)
+                .symbolEffect(.bounce, value: isSelected)
         }
     }
 }
