@@ -9,6 +9,9 @@ struct ProfileView: View {
     let profile: Profile
     let logs: [LogFeedItem]
 
+    @State private var isSigningOut = false
+    @State private var signOutError: String?
+
     private var averageHeartRating: Double? {
         let rated = logs.compactMap(\.heartRating)
         guard !rated.isEmpty else { return nil }
@@ -103,8 +106,50 @@ struct ProfileView: View {
                     .background(Color.gbSurface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+
+                signOutButton
+                    .padding(.top, 8)
             }
             .padding()
+        }
+    }
+
+    private var signOutButton: some View {
+        VStack(spacing: 6) {
+            Button {
+                Task { await signOut() }
+            } label: {
+                Text(isSigningOut ? "Signing out…" : "Sign Out")
+                    .font(.nunitoBold(15))
+                    .foregroundStyle(Color.gbRed)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.gbSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .disabled(isSigningOut)
+
+            if let signOutError {
+                Text(signOutError)
+                    .font(.nunito(12))
+                    .foregroundStyle(Color.gbRed)
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+
+    // Only clears the remote/Google session — AppState.observeAuthChanges()
+    // is already subscribed to authStateChanges, so it nils `session` on
+    // the sign-out event and RootView swaps to SignInView on its own.
+    // Nothing here should touch AppState directly.
+    private func signOut() async {
+        isSigningOut = true
+        defer { isSigningOut = false }
+        do {
+            signOutError = nil
+            try await AuthService.signOut()
+        } catch {
+            signOutError = error.localizedDescription
         }
     }
 
