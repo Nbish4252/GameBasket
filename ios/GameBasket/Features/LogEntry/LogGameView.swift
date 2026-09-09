@@ -21,14 +21,11 @@ struct LogGameView: View {
                     .font(.balooSemiBold(15))
                     .foregroundStyle(Color.gbText)
             ) {
-                Stepper(value: $rating, in: 0...5, step: 0.5) {
-                    HStack(spacing: 6) {
-                        PixelHeart()
-                            .frame(width: 14, height: 14)
-                        Text("Rating: \(rating, specifier: "%.1f")")
-                            .font(.nunito(15))
-                            .foregroundStyle(Color.gbText)
-                    }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(rating > 0 ? String(format: "%.1f hearts", rating) : "Tap to rate")
+                        .font(.nunito(13))
+                        .foregroundStyle(Color.gbTextDim)
+                    HeartRatingControl(rating: $rating)
                 }
                 .listRowBackground(Color.gbSurface)
 

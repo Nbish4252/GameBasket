@@ -44,6 +44,12 @@ struct GameDetailView: View {
                     }
                 }
 
+                if let summary = game.summary, !summary.isEmpty {
+                    Text(summary)
+                        .font(.nunito(13))
+                        .foregroundStyle(Color.gbTextDim)
+                }
+
                 if let steamEntry {
                     sectionCard(title: "Playtime") {
                         Text(playtimeText(steamEntry.playtimeMinutes))
