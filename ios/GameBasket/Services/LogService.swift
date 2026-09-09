@@ -64,9 +64,11 @@ enum LogService {
     // recent window rather than a server-side GROUP BY, since a real
     // aggregate query would need a Postgres function + migration and
     // this stays a plain SELECT. gte's String value (ISO8601) is the
-    // documented approach for supabase-swift's date filters, but hasn't
-    // been exercised elsewhere in this codebase — verify against a real
-    // run.
+    // documented approach for supabase-swift's date filters — verified:
+    // reliable both hit directly and from a non-cancelled caller. If this
+    // ever comes back empty when data should exist, check for
+    // CancellationError at the call site before suspecting this query —
+    // that's what an empty result from here turned out to mean once.
     static func recentlyLoggedGames(sinceDays: Int = 7, limit: Int = 300) async throws -> [Game] {
         struct Row: Decodable {
             let game: Game

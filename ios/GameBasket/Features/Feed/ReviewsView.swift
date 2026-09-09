@@ -70,12 +70,30 @@ struct ReviewsView: View {
                     }
                     .padding()
                 }
+                .refreshable {
+                    await load()
+                }
                 .transition(.opacity)
             }
         }
         .background(Color.gbBackground)
         .task {
-            reviews = (try? await LogService.recentReviews()) ?? []
+            await load()
+        }
+    }
+
+    // See JournalView.load()'s comment — a cancelled refresh must not
+    // clobber good data with an empty result.
+    private func load() async {
+        do {
+            let fetched = try await LogService.recentReviews()
+            withAnimation(.easeOut(duration: 0.25)) {
+                reviews = fetched
+                hasLoaded = true
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
             withAnimation(.easeOut(duration: 0.25)) {
                 hasLoaded = true
             }

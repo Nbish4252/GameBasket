@@ -65,6 +65,9 @@ struct JournalView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding()
                 }
+                .refreshable {
+                    await load()
+                }
                 .transition(.opacity)
             }
         }
@@ -77,11 +80,26 @@ struct JournalView: View {
         }
     }
 
+    // A cancelled refresh (the .refreshable Task ends before this
+    // finishes) must not clobber good on-screen data with an empty
+    // result — caught via a real, reproducible CancellationError during
+    // testing, not a hypothetical. Leaving existing state untouched on
+    // cancellation is correct for both an interrupted refresh and an
+    // interrupted first load.
     private func load() async {
         guard let userId = appState.session?.userId else { return }
-        items = (try? await LogService.feedItems(for: userId)) ?? []
-        withAnimation(.easeOut(duration: 0.25)) {
-            hasLoaded = true
+        do {
+            let fetched = try await LogService.feedItems(for: userId)
+            withAnimation(.easeOut(duration: 0.25)) {
+                items = fetched
+                hasLoaded = true
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
+            withAnimation(.easeOut(duration: 0.25)) {
+                hasLoaded = true
+            }
         }
     }
 }

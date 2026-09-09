@@ -43,6 +43,14 @@ struct ProfileTabView: View {
                     SteamSyncTestView()
                 }
             }
+            // Attached here rather than on ProfileView's internal
+            // ScrollView directly, since ProfileTabView (not ProfileView)
+            // owns load() — .refreshable propagates down via environment
+            // to whichever ScrollView/List is in the content, so this
+            // still reaches ProfileView's scroll view correctly.
+            .refreshable {
+                await load()
+            }
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -50,14 +58,23 @@ struct ProfileTabView: View {
         }
     }
 
+    // See JournalView.load()'s comment (Features/Feed) — a cancelled
+    // refresh must not clobber good data with an empty/nil result.
     private func load() async {
         guard let userId = appState.session?.userId else { return }
-        async let profileFetch = ProfileService.profile(for: userId)
-        async let logsFetch = LogService.feedItems(for: userId)
-        let (fetchedProfile, fetchedLogs) = (try? await profileFetch, (try? await logsFetch) ?? [])
-        withAnimation(.easeOut(duration: 0.25)) {
-            profile = fetchedProfile
-            logs = fetchedLogs
+        do {
+            async let profileFetch = ProfileService.profile(for: userId)
+            async let logsFetch = LogService.feedItems(for: userId)
+            let (fetchedProfile, fetchedLogs) = try await (profileFetch, logsFetch)
+            withAnimation(.easeOut(duration: 0.25)) {
+                profile = fetchedProfile
+                logs = fetchedLogs
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
+            // Both fetches are independently fallible; nothing useful to
+            // do here beyond leaving prior state in place, same as above.
         }
     }
 }

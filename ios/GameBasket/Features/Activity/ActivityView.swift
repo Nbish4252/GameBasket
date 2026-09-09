@@ -29,6 +29,9 @@ struct ActivityView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding()
                     }
+                    .refreshable {
+                        await load()
+                    }
                     .transition(.opacity)
                 }
             }
@@ -119,11 +122,22 @@ struct ActivityView: View {
         }
     }
 
+    // See JournalView.load()'s comment — a cancelled refresh must not
+    // clobber good data with an empty result.
     private func load() async {
         guard let userId = appState.session?.userId else { return }
-        items = (try? await ActivityService.recentActivity(for: userId)) ?? []
-        withAnimation(.easeOut(duration: 0.25)) {
-            hasLoaded = true
+        do {
+            let fetched = try await ActivityService.recentActivity(for: userId)
+            withAnimation(.easeOut(duration: 0.25)) {
+                items = fetched
+                hasLoaded = true
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
+            withAnimation(.easeOut(duration: 0.25)) {
+                hasLoaded = true
+            }
         }
     }
 }

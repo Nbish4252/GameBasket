@@ -123,14 +123,15 @@ struct GamesDiscoveryView: View {
             Task { await loadFriendData() }
         }
         .task {
-            recommendations = (try? await RecommendationService.recommendations()) ?? []
+            await loadRecommendations()
         }
         .task {
-            let games = (try? await LogService.recentlyLoggedGames()) ?? []
-            withAnimation(.easeOut(duration: 0.25)) {
-                trendingLogs = games
-                hasLoadedTrending = true
-            }
+            await loadTrending()
+        }
+        .refreshable {
+            await loadFriendData()
+            await loadTrending()
+            await loadRecommendations()
         }
     }
 
@@ -237,17 +238,64 @@ struct GamesDiscoveryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
+    // All three load functions below share one rule, found the hard way:
+    // never let a cancelled load overwrite good on-screen data with an
+    // empty result. `.refreshable`'s Task gets cancelled if the pull
+    // gesture ends before the async work finishes (confirmed via a
+    // CancellationError caught here during testing — not a network or
+    // query bug, the exact same Supabase call is 100% reliable when hit
+    // directly). A plain `try?` treats cancellation exactly like "got no
+    // data" and clears the section to empty; catching CancellationError
+    // explicitly and simply not writing state instead leaves whatever
+    // was already showing untouched, which is the correct behavior for
+    // both an interrupted refresh and (defensively) an interrupted first
+    // load.
     private func loadFriendData() async {
         guard let userId = appState.session?.userId else { return }
-        let following = (try? await ProfileService.following(for: userId)) ?? []
-        let followingAnyone = !following.isEmpty
-        let activity = followingAnyone
-            ? (try? await LogService.friendActivity(followingIds: following.map(\.id))) ?? []
-            : []
-        withAnimation(.easeOut(duration: 0.25)) {
-            isFollowingAnyone = followingAnyone
-            friendActivity = activity
-            hasLoadedFriendData = true
+        do {
+            let following = try await ProfileService.following(for: userId)
+            let followingAnyone = !following.isEmpty
+            let activity = followingAnyone
+                ? try await LogService.friendActivity(followingIds: following.map(\.id))
+                : []
+            withAnimation(.easeOut(duration: 0.25)) {
+                isFollowingAnyone = followingAnyone
+                friendActivity = activity
+                hasLoadedFriendData = true
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
+            withAnimation(.easeOut(duration: 0.25)) {
+                hasLoadedFriendData = true
+            }
+        }
+    }
+
+    private func loadTrending() async {
+        do {
+            let games = try await LogService.recentlyLoggedGames()
+            withAnimation(.easeOut(duration: 0.25)) {
+                trendingLogs = games
+                hasLoadedTrending = true
+            }
+        } catch is CancellationError {
+            // Leave existing state as-is.
+        } catch {
+            withAnimation(.easeOut(duration: 0.25)) {
+                hasLoadedTrending = true
+            }
+        }
+    }
+
+    private func loadRecommendations() async {
+        do {
+            recommendations = try await RecommendationService.recommendations()
+        } catch {
+            // Leave existing state as-is, cancellation or otherwise —
+            // recommendations have no loading/empty-state UI of their
+            // own (the section just doesn't render until non-empty), so
+            // there's nothing to fall back to here either way.
         }
     }
 }
