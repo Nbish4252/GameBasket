@@ -29,7 +29,7 @@ struct ReviewsView: View {
                     VStack(spacing: 12) {
                         ForEach(reviews) { log in
                             NavigationLink {
-                                GameDetailView(game: log.game)
+                                ReviewDetailView(log: log)
                             } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack(spacing: 8) {
