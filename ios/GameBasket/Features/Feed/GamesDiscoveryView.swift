@@ -1,15 +1,13 @@
 import SwiftUI
 
-// The mockup's "Games" tab also has a site-wide "Popular this week"
-// section — out of scope here since it needs a trending metric across
-// all users, not just the signed-in user's own graph, and wasn't part
-// of what was asked for this pass.
 struct GamesDiscoveryView: View {
     @EnvironmentObject private var appState: AppState
     @State private var isFollowingAnyone = false
     @State private var friendActivity: [PostedLog] = []
     @State private var recommendations: [GameRecommendation] = []
+    @State private var trendingLogs: [Game] = []
     @State private var hasLoadedFriendData = false
+    @State private var hasLoadedTrending = false
 
     private var newFromFriends: [PostedLog] {
         Array(friendActivity.prefix(10))
@@ -31,10 +29,35 @@ struct GamesDiscoveryView: View {
             .compactMap { gamesById[$0.key] }
     }
 
+    // Site-wide trending (last 7 days), independent of the signed-in
+    // user's follows — tallied client-side from LogService's bounded
+    // recent-window fetch, same approach as popularWithFriends above.
+    private var popularThisWeek: [Game] {
+        var counts: [Int: Int] = [:]
+        var gamesById: [Int: Game] = [:]
+        for game in trendingLogs {
+            counts[game.id, default: 0] += 1
+            gamesById[game.id] = game
+        }
+        return counts.sorted { $0.value > $1.value }
+            .prefix(8)
+            .compactMap { gamesById[$0.key] }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
+                sectionHeader("Popular this week")
+                if !hasLoadedTrending {
+                    loadingRow
+                } else if popularThisWeek.isEmpty {
+                    emptyCard("Nothing logged this week yet.")
+                } else {
+                    coverRow(popularThisWeek)
+                }
+
                 sectionHeader("New from friends")
+                    .padding(.top, 14)
                 if !hasLoadedFriendData {
                     loadingRow
                 } else if !isFollowingAnyone {
@@ -90,6 +113,10 @@ struct GamesDiscoveryView: View {
         }
         .task {
             recommendations = (try? await RecommendationService.recommendations()) ?? []
+        }
+        .task {
+            trendingLogs = (try? await LogService.recentlyLoggedGames()) ?? []
+            hasLoadedTrending = true
         }
     }
 

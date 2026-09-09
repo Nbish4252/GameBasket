@@ -59,6 +59,60 @@ enum LogService {
             .value
     }
 
+    // Site-wide, not scoped to the caller's follows — tallied client-side
+    // (same pattern as friendActivity's "popular" tally) from a bounded
+    // recent window rather than a server-side GROUP BY, since a real
+    // aggregate query would need a Postgres function + migration and
+    // this stays a plain SELECT. gte's String value (ISO8601) is the
+    // documented approach for supabase-swift's date filters, but hasn't
+    // been exercised elsewhere in this codebase — verify against a real
+    // run.
+    static func recentlyLoggedGames(sinceDays: Int = 7, limit: Int = 300) async throws -> [Game] {
+        struct Row: Decodable {
+            let game: Game
+            enum CodingKeys: String, CodingKey { case game = "games" }
+        }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -sinceDays, to: Date()) ?? Date()
+        let rows: [Row] = try await supabaseClient
+            .from("logs")
+            .select("games(*)")
+            .gte("created_at", value: ISO8601DateFormatter().string(from: cutoff))
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+        return rows.map(\.game)
+    }
+
+    // Every rating for a game, site-wide — the raw 1-10 half-heart values,
+    // for the caller to average/bucket as needed (GameDetailView uses
+    // this for both the community average and the histogram).
+    static func ratings(forGameId gameId: Int) async throws -> [Int] {
+        struct RatingRow: Decodable { let rating: Int? }
+        let rows: [RatingRow] = try await supabaseClient
+            .from("logs")
+            .select("rating")
+            .eq("game_id", value: gameId)
+            .execute()
+            .value
+        return rows.compactMap(\.rating)
+    }
+
+    // "Friends who rated this" — reuses PostedLog/the fixed
+    // profiles!logs_user_id_fkey embed from friendActivity above, just
+    // filtered to one game instead of a recent window.
+    static func friendRatings(gameId: Int, followingIds: [UUID]) async throws -> [PostedLog] {
+        guard !followingIds.isEmpty else { return [] }
+        return try await supabaseClient
+            .from("logs")
+            .select("id, rating, review, created_at, games(*), profiles!logs_user_id_fkey(*)")
+            .eq("game_id", value: gameId)
+            .in("user_id", value: followingIds)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+    }
+
     static func tagParticipants(logId: UUID, profileIds: [UUID]) async throws {
         guard !profileIds.isEmpty else { return }
 

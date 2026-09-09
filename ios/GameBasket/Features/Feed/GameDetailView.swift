@@ -1,12 +1,13 @@
 import SwiftUI
 
 // Scoped to what the schema actually supports today: name/cover/release
-// date/genres, the signed-in user's own most recent log for this game
-// (with played-with tags), and Steam playtime if a steam_app_id match
-// exists. Deliberately NOT included, since we have no real data behind
-// them: rating-distribution histogram, "friends who rated this" avatar
-// strip, store links — those need a real social graph / external
-// linking this app doesn't have yet, and faking them would be dishonest.
+// date/genres, description, the signed-in user's own most recent log
+// (with played-with tags), community rating distribution + average
+// (site-wide, from every log on this game), "friends who rated this"
+// (via `follows`), and Steam playtime if a steam_app_id match exists.
+// Deliberately NOT included, since we have no real data behind them:
+// store links, playtime estimate, platforms, developer — those need new
+// `games` columns and an IGDB fetch update, not just a new query.
 struct GameDetailView: View {
     let game: Game
 
@@ -14,6 +15,8 @@ struct GameDetailView: View {
     @State private var log: GameLog?
     @State private var participants: [Profile] = []
     @State private var steamEntry: SteamLibraryEntry?
+    @State private var communityRatings: [Int] = []
+    @State private var friendRatings: [PostedLog] = []
 
     var body: some View {
         ScrollView {
@@ -48,6 +51,11 @@ struct GameDetailView: View {
                     Text(summary)
                         .font(.nunito(13))
                         .foregroundStyle(Color.gbTextDim)
+                }
+
+                if !communityRatings.isEmpty {
+                    Divider().background(Color.gbLine)
+                    ratingSummary
                 }
 
                 if let steamEntry {
@@ -88,6 +96,10 @@ struct GameDetailView: View {
                             .foregroundStyle(Color.gbTextFaint)
                     }
                 }
+
+                if !friendRatings.isEmpty {
+                    friendsWhoRatedSection
+                }
             }
             .padding()
         }
@@ -106,6 +118,84 @@ struct GameDetailView: View {
     private var releaseYear: String? {
         guard let date = game.firstReleaseDate else { return nil }
         return String(Calendar.current.component(.year, from: date))
+    }
+
+    // 10 buckets matching our real granularity (half-heart units, 1...10)
+    // rather than force-fitting the mockup's 7 decorative bars — this
+    // reads the app's actual rating scale honestly instead of copying an
+    // arbitrary placeholder bar count.
+    private var ratingDistribution: [Int] {
+        var counts = Array(repeating: 0, count: 10)
+        for rating in communityRatings where (1...10).contains(rating) {
+            counts[rating - 1] += 1
+        }
+        return counts
+    }
+
+    private var communityAverage: Double? {
+        guard !communityRatings.isEmpty else { return nil }
+        return Double(communityRatings.reduce(0, +)) / Double(communityRatings.count) / 2
+    }
+
+    private var ratingSummary: some View {
+        HStack(alignment: .bottom, spacing: 16) {
+            let maxCount = max(ratingDistribution.max() ?? 1, 1)
+            HStack(alignment: .bottom, spacing: 3) {
+                ForEach(0..<10, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(LinearGradient(colors: [Color.gbHeart, Color.gbHeartDim], startPoint: .top, endPoint: .bottom))
+                        .frame(width: 8, height: max(4, 44 * CGFloat(ratingDistribution[index]) / CGFloat(maxCount)))
+                }
+            }
+            VStack(spacing: 2) {
+                HStack(spacing: 5) {
+                    PixelHeart()
+                        .frame(width: 20, height: 20)
+                    Text(String(format: "%.1f", communityAverage ?? 0))
+                        .font(.balooBold(26))
+                        .foregroundStyle(Color.gbText)
+                }
+                Text("\(communityRatings.count) rating\(communityRatings.count == 1 ? "" : "s")")
+                    .font(.nunitoSemiBold(10))
+                    .foregroundStyle(Color.gbTextFaint)
+                    .textCase(.uppercase)
+            }
+        }
+    }
+
+    private var friendsWhoRatedSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Friends who rated this")
+                .font(.balooSemiBold(13))
+                .foregroundStyle(Color.gbTextFaint)
+            HStack(spacing: 12) {
+                ForEach(friendRatings) { entry in
+                    VStack(spacing: 4) {
+                        AsyncImage(url: entry.profile.avatarUrl.flatMap(URL.init)) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Color.gbSurface2.overlay {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.gbTextFaint)
+                            }
+                        }
+                        .frame(width: 34, height: 34)
+                        .clipShape(Circle())
+
+                        if let heartRating = entry.heartRating {
+                            HStack(spacing: 2) {
+                                PixelHeart()
+                                    .frame(width: 8, height: 8)
+                                Text(String(format: "%.1f", heartRating))
+                                    .font(.nunitoExtraBold(9))
+                                    .foregroundStyle(Color.gbGold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func playtimeText(_ minutes: Int) -> String {
@@ -135,6 +225,13 @@ struct GameDetailView: View {
         }
         if let steamAppId = game.steamAppId {
             steamEntry = try? await SteamSyncService.libraryEntry(for: userId, steamAppId: steamAppId)
+        }
+
+        communityRatings = (try? await LogService.ratings(forGameId: game.id)) ?? []
+
+        let following = (try? await ProfileService.following(for: userId)) ?? []
+        if !following.isEmpty {
+            friendRatings = (try? await LogService.friendRatings(gameId: game.id, followingIds: following.map(\.id))) ?? []
         }
     }
 }
