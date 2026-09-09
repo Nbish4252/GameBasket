@@ -149,11 +149,13 @@ struct ReviewDetailView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: isLikedByMe ? "heart.fill" : "heart")
+                        .symbolEffect(.bounce, value: isLikedByMe)
                     Text("\(likerIds.count)")
                 }
             }
             .disabled(isTogglingLike)
             .foregroundStyle(isLikedByMe ? Color.gbHeart : Color.gbTextFaint)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isLikedByMe)
 
             HStack(spacing: 6) {
                 Image(systemName: "bubble.left")

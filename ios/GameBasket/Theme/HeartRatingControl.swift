@@ -13,6 +13,12 @@ struct HeartRatingControl: View {
     private let heartCount = 5
     private let spacing: CGFloat = 6
 
+    // Only the tapped heart bounces (not the whole row) — a brief
+    // overshoot-then-settle scale, matching the "single element reacts"
+    // feel of iOS like/rating controls rather than animating all 5 at
+    // once, which would read as noisier and less precise.
+    @State private var bouncingIndex: Int?
+
     var body: some View {
         HStack(spacing: spacing) {
             ForEach(1...heartCount, id: \.self) { index in
@@ -38,19 +44,37 @@ struct HeartRatingControl: View {
             }
         }
         .frame(width: size, height: size)
+        .scaleEffect(bouncingIndex == index ? 1.18 : 1.0)
         .overlay {
             HStack(spacing: 0) {
                 Color.clear
                     .contentShape(Rectangle())
-                    .onTapGesture { setRating(halfValue) }
+                    .onTapGesture { setRating(halfValue, at: index) }
                 Color.clear
                     .contentShape(Rectangle())
-                    .onTapGesture { setRating(fullValue) }
+                    .onTapGesture { setRating(fullValue, at: index) }
             }
         }
     }
 
-    private func setRating(_ value: Double) {
-        rating = rating == value ? 0 : value
+    private func setRating(_ value: Double, at index: Int) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.55)) {
+            rating = rating == value ? 0 : value
+        }
+        bounce(index)
+    }
+
+    private func bounce(_ index: Int) {
+        withAnimation(.spring(response: 0.18, dampingFraction: 0.4)) {
+            bouncingIndex = index
+        }
+        Task {
+            try? await Task.sleep(nanoseconds: 140_000_000)
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                if bouncingIndex == index {
+                    bouncingIndex = nil
+                }
+            }
+        }
     }
 }
