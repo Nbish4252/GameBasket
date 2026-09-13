@@ -175,7 +175,7 @@ struct GamesDiscoveryView: View {
             HStack(alignment: .top, spacing: 12) {
                 ForEach(logs) { log in
                     VStack(alignment: .leading, spacing: 3) {
-                        cover(url: log.game.coverUrl, title: log.game.name)
+                        GameCoverCard(url: log.game.coverUrl, title: log.game.name)
                         Text(log.profile.displayName ?? log.profile.username)
                             .font(.nunitoBold(11))
                             .foregroundStyle(Color.gbTextDim)
@@ -201,41 +201,12 @@ struct GamesDiscoveryView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
                 ForEach(games) { game in
-                    cover(url: game.coverUrl, title: game.name)
-                        .frame(width: 88)
+                    GameCoverCard(url: game.coverUrl, title: game.name)
                 }
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
         }
-    }
-
-    @ViewBuilder
-    private func cover(url: String?, title: String) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: url.flatMap(URL.init)) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Color.gbSurface2
-            }
-            .frame(width: 88, height: 118)
-            .clipped()
-
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.75)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-            .frame(width: 88, height: 118)
-
-            Text(title)
-                .font(.balooSemiBold(11))
-                .foregroundStyle(.white)
-                .lineLimit(2)
-                .padding(8)
-        }
-        .frame(width: 88, height: 118)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     // All three load functions below share one rule, found the hard way:
