@@ -1,6 +1,15 @@
 # GameBasket
 
-A social app for logging and rating the games you play — SwiftUI (iOS) + Supabase.
+GameBasket is a social app for logging and rating the games you play, in the shape of Letterboxd — but for games instead of films. Its core differentiator is co-op-aware logging: a "Played With" tag credits the real people you played *a game* with, not just people who happened to log the same title, which is something a film tracker has no equivalent for since films aren't a co-op medium. Log a game, rate it in hearts, tag who you played it with, and see what your friends are playing.
+
+**Stack:** SwiftUI (iOS) · Supabase (Postgres, Auth, Edge Functions, Row-Level Security) · IGDB (game metadata) · Steam Web API (playtime sync) · Claude Haiku 4.5 (game recommendations) · Cloudflare AI Gateway (LLM request observability)
+
+<!-- screenshots here — see design/screenshots/ -->
+<!--
+![Feed](design/screenshots/feed.png)
+![Game Detail](design/screenshots/game-detail.png)
+![Profile](design/screenshots/profile.png)
+-->
 
 ## Repo layout
 
